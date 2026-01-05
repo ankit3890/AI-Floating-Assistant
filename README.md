@@ -59,7 +59,7 @@ Anti Gravith features a built-in **automated update system**.
 
 | Version    | Main Changes                                                                  |
 | :--------- | :---------------------------------------------------------------------------- |
-| **v2.5.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode. |
+| **v1.0.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode. |
 
 ---
 

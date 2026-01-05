@@ -1,6 +1,6 @@
 {
   "name": "ai_pin",
-  "version": "2.5.1",
+  "version": "1.0.0",
   "description": "Floating AI Assistant",
   "main": "main.js",
   "scripts": {
