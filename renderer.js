@@ -2350,6 +2350,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update Error
             window.electronAPI.onUpdateError((message) => {
                 console.error('Renderer: Update error', message);
+                // Suppress toast for common "not an error" situations
+                if (message && message.includes('No published versions on GitHub')) {
+                    console.info('Updater: No releases found on GitHub yet (expected if in draft).');
+                    return;
+                }
                 showToast(`Update error: ${message}`);
             });
 
