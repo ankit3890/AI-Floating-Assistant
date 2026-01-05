@@ -1,0 +1,56 @@
+{
+  "name": "ai_pin",
+  "version": "2.5.0",
+  "description": "Floating AI Assistant",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "build": {
+    "appId": "com.aipin.desktop",
+    "productName": "AI Floating Assistant",
+    "win": {
+      "target": "nsis",
+      "icon": "logo.ico",
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "ankit3890",
+          "repo": "AI-Floating-Assistant"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "logo.icns",
+      "category": "public.app-category.productivity"
+    },
+    "dmg": {
+      "title": "AI Floating Assistant Installer",
+      "icon": "logo.icns"
+    }
+  },
+  "keywords": [],
+  "author": "Ankit",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "electron-store": "^11.0.2",
+    "electron-updater": "^6.6.2",
+    "ws": "^8.18.3"
+  }
+}
