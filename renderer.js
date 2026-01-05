@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Onboarding Tour Logic ---
     // --- Onboarding Tour Logic ---
     async function initTour() {
-        let currentVersion = '2.5';
+        let currentVersion = '1.0.0';
         try {
              currentVersion = await window.electronAPI.getAppVersion();
         } catch (e) { console.error(e); }
