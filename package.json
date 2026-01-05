@@ -1,7 +1,11 @@
 {
   "name": "ai_pin",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Floating AI Assistant",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankit3890/AI-Floating-Assistant.git"
+  },
   "main": "main.js",
   "scripts": {
     "start": "electron .",

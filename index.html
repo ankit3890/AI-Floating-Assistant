@@ -350,6 +350,14 @@
                 </svg>
                 <span>Incognito</span>
             </button>
+            <button id="quick-refresh-btn" class="footer-btn" title="Refresh">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Refresh</span>
+            </button>
             <button id="collapse-btn" class="footer-btn" title="Compact Mode">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="4 14 10 14 10 20"></polyline>
@@ -404,7 +412,7 @@
          <div class="credit-box">
            <span>Made by</span>
            <strong>Alex</strong>
-           <div style="margin-top:8px;font-size:10px;color:#666;">Version 1.0.0</div>
+           <div style="margin-top:8px;font-size:10px;color:#666;">Version 1.0.2</div>
          </div>
        </div>
      </div>
@@ -437,6 +445,10 @@
          
          <!-- App Maintenance -->
          <h4 style="margin-top:0;">App Settings</h4>
+         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+             <button id="check-updates-btn" class="secondary-btn">Check for Updates</button>
+             <button id="open-github-btn" class="secondary-btn">GitHub Release</button>
+         </div>
          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
              <button class="secondary-btn" id="replay-tour-btn">Start Tour Guide</button>
              <button id="reset-defaults-btn" class="secondary-btn">Reset Defaults</button>
@@ -532,11 +544,41 @@
       <div id="update-progress-container" class="update-progress-container hidden">
         <div class="progress-bar-wrapper">
           <div id="update-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+        <div class="update-header">
+            <div class="update-icon">
+                <span style="font-size: 20px;">🚀</span>
+            </div>
+            <div class="update-info">
+                <h3>New Update Available!</h3>
+                <span class="version-tag" id="update-version-text">v2.5.1</span>
+            </div>
+            <div class="update-actions">
+                <button id="update-view-notes" class="btn-outline-sm">Notes</button>
+                <button id="update-later" class="btn-outline-sm">Later</button>
+                <button id="update-now" class="btn-primary-sm">Update Now</button>
+            </div>
         </div>
-        <span id="update-progress-text">Downloading: 0%</span>
-      </div>
+
+        <!-- Warning Box (Visible during download) -->
+        <div id="update-warning" class="update-warning hidden">
+            <svg class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <p>Windows may show a security warning because this update is not digitally signed. This is expected for early versions.</p>
+        </div>
+
+        <!-- Progress Bar (Visible during download) -->
+        <div id="update-progress-container" class="update-progress-container hidden">
+            <div class="progress-bar-bg">
+                <div id="update-progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <span id="update-progress-text" class="progress-text">Starting download...</span>
+        </div>
     </div>
 
+    <!-- Scripts -->
     <script src="planning-board.js"></script>
     <script src="renderer.js"></script>
 </body>

@@ -740,8 +740,53 @@ ipcMain.on('capture-cancel', () => {
 const { autoUpdater } = require("electron-updater");
 
 // Configure autoUpdater
-autoUpdater.autoDownload = false; // We want to show a banner first
-autoUpdater.allowPrerelease = false;
+autoUpdater.autoDownload = false; // User wants manual control
+autoUpdater.allowPrerelease = true;
+autoUpdater.logger = console;
+autoUpdater.forceDevUpdateConfig = true;
+
+// Helper to clear cache
+function clearUpdateCache() {
+    try {
+        const pendingPath = path.join(app.getPath('userData'), 'pending');
+        if (fs.existsSync(pendingPath)) {
+            console.log('[Main] Clearing pending update cache:', pendingPath);
+            fs.rmSync(pendingPath, { recursive: true, force: true });
+        }
+    } catch (e) {
+        console.error('[Main] Failed to clear update cache:', e);
+    }
+}
+
+// Clear cache on startup/init
+clearUpdateCache();
+
+ipcMain.handle('start-download-update', async () => {
+  console.log('[Main] Manual download requested...');
+  let result = await autoUpdater.downloadUpdate();
+  
+  // WORKAROUND: If downloadUpdate() returns null (common issue), 
+  // we force a re-check with autoDownload=true to trigger it.
+  if (!result) {
+      console.log('[Main] downloadUpdate() returned null. Forcing auto-download via re-check...');
+      autoUpdater.autoDownload = true;
+      result = await autoUpdater.checkForUpdates();
+      // Keep autoDownload = true for the duration of this session to ensure streams don't break
+      // autoUpdater.autoDownload = false; 
+  }
+  return result;
+});
+autoUpdater.logger = console;
+autoUpdater.forceDevUpdateConfig = true;
+
+// Force Dev Configuration
+if (process.env.NODE_ENV === 'development' || !app.isPackaged) {
+    autoUpdater.setFeedURL({
+        provider: 'github',
+        owner: 'ankit3890',
+        repo: 'AI-Floating-Assistant'
+    });
+}
 
 // Handle update events
 autoUpdater.on('update-available', (info) => {
@@ -753,6 +798,12 @@ autoUpdater.on('update-available', (info) => {
 
 autoUpdater.on('update-not-available', (info) => {
   console.log('Update not available:', info);
+  if (mainWindow) {
+    mainWindow.webContents.send('update-not-available', { 
+        ...info, 
+        currentVersion: app.getVersion() 
+    });
+  }
 });
 
 autoUpdater.on('error', (err) => {
@@ -763,26 +814,43 @@ autoUpdater.on('error', (err) => {
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
+  console.log('[Main] Download Progress:', progressObj.percent); // Local log
   if (mainWindow) {
     mainWindow.webContents.send('download-progress', progressObj);
   }
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-  console.log('Update downloaded:', info);
+  console.log('[Main] Update Downloaded:', info); // Local log
   if (mainWindow) {
     mainWindow.webContents.send('update-downloaded', info);
   }
 });
 
 // IPC Handlers for Updates
-ipcMain.handle('check-for-updates', () => {
-  return autoUpdater.checkForUpdates();
+ipcMain.handle('check-for-updates', async () => {
+  try {
+      const result = await autoUpdater.checkForUpdates();
+      // If check is skipped (e.g. no config in dev), it returns null/undefined
+      if (!result) {
+          console.log('[Main] Update check returned null (likely skipped)');
+          if (mainWindow) {
+              // Fake a 'not available' so UI doesn't hang
+              mainWindow.webContents.send('update-not-available', { 
+                  version: 'Dev/Unknown',
+                  currentVersion: app.getVersion()
+              });
+          }
+      }
+      return result;
+  } catch (err) {
+      console.error('[Main] Update check error:', err);
+      // Let the renderer catch this
+      throw err;
+  }
 });
 
-ipcMain.handle('start-download-update', () => {
-  return autoUpdater.downloadUpdate();
-});
+// [REMOVED] Duplicate handler
 
 ipcMain.handle('quit-and-install', () => {
   autoUpdater.quitAndInstall();

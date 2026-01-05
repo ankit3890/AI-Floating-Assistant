@@ -1,7 +1,7 @@
 :root {
-  --sidebar-width: 64px;
+  --sidebar-width: 60px; /* Reduced from 72px */
   --bg-color: #0d0d0d;
-  --sidebar-bg: #161616;
+  --sidebar-bg: #131313;
   --text-color: #e0e0e0;
   --text-muted: #888888;
   --accent-color: #3b82f6; /* Modern Blue */
@@ -9,6 +9,26 @@
   --hover-color: #2a2a2a;
   --border-color: #333;
   --toolbar-height: 44px;
+}
+
+/* Global Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color); 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 5px;
+  border: 2px solid var(--bg-color); /* Creates padding effect */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .hidden {
@@ -48,9 +68,9 @@ body {
 }
 
 .sidebar.expanded {
-  width: 200px; /* Expanded Width */
-  align-items: flex-start; /* Left align when expanded */
-  padding-left: 12px;
+  width: 240px; /* Wider expanded width */
+  align-items: stretch; /* Stretch items to fill width */
+  padding-left: 0; /* Remove padding left as items will have their own padding */
 }
 
 .sidebar-header {
@@ -89,11 +109,15 @@ body {
 }
 
 .separator {
-  width: 40px;
+  width: 40px; /* Short width in collapsed */
   height: 1px;
-  background-color: #333;
-  margin: 8px 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 8px auto; /* Center it */
   flex-shrink: 0;
+}
+
+.sidebar.expanded .separator {
+    width: 85%; /* Wide in expanded */
 }
 
 .sidebar.expanded .ai-list {
@@ -103,19 +127,27 @@ body {
 
 /* ... existing code ... */
 .ai-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center icons */
-  gap: 16px; /* Increased gap for better separation */
-  flex: 1; /* Take up available space */
-  overflow-y: auto; /* Scrollable */
-  overflow-x: hidden;
-  min-height: 0; /* Crucial for scrolling in flex */
-  padding-bottom: 10px;
+  padding: 12px 8px; /* Reduced side padding (10->8) */
+  gap: 4px; /* Reduced gap (8->4) */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ai-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 42px; /* Reduced height (48->42) */
+  border-radius: 10px; /* Slightly tighter radius */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #9ca3af;
+  padding: 0 10px; /* Reduced inner padding */
+  box-sizing: border-box;
+  position: relative;
 }
 
 .secondary-btn {
@@ -200,8 +232,20 @@ body {
   padding-left: 10px;
 }
 
+/* Icon Adjustment */
 .ai-item .icon {
-  min-width: 24px; /* Fix icon size so it doesn't shrink */
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-list .ai-item .icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.5;
 }
 
 .ai-name {
@@ -222,60 +266,94 @@ body {
 
 /* Sidebar Footer buttons also need expansion logic */
 /* Sidebar Footer */
+/* Sidebar Footer */
 .sidebar-footer {
   margin-top: auto;
-  margin-bottom: 24px;
+  padding: 16px 8px; /* Less side padding */
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px; /* Gap between rows */
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0; /* CRITICAL: Prevent shrinking */
+  background: var(--sidebar-bg); /* Ensure background covers content behind if needed */
+  z-index: 10;
 }
 
 .footer-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Default to column for collapsed state */
   align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.sidebar.expanded .sidebar-footer {
-  flex-direction: column; /* Keep rows stacked vertically */
-  align-items: center;
-  padding: 0 10px;
-}
-
-.sidebar.expanded .footer-row {
-  flex-direction: row; /* Buttons side-by-side within row */
   justify-content: center;
-  gap: 8px;
-  width: 100%;
+  gap: 12px; /* Space between stacked icons */
+}
+
+/* Expanded Footer Row matches width */
+.sidebar.expanded .footer-row {
+    flex-direction: row;
+    gap: 16px;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+}
+
+.control-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .ai-item:hover {
-  background-color: var(--hover-color);
-  color: #fff;
-  transform: translateY(-1px);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
 }
 
 .ai-item.active {
-  background-color: var(--hover-color);
-  color: var(--accent-color);
-  box-shadow: 0 0 15px var(--accent-glow);
-  position: relative;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
+  color: #60a5fa; /* Blue text */
 }
 
-/* Fix active indicator for expanded state */
-/* Fix active indicator for expanded state */
+/* Active Indicator (Left Bar) */
 .ai-item.active::before {
   content: '';
   position: absolute;
-  left: -10px; /* Attach to sidebar edge (Sidebar centered 44px in 64px container = 10px margin) */
-  width: 4px; /* Slightly thicker */
-  height: 24px; /* Taller */
-  background-color: var(--accent-color);
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background-color: #3b82f6;
   border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.ai-name {
+    margin-left: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s;
+}
+
+.sidebar.expanded .ai-name {
+    opacity: 1;
+    width: auto;
 }
 
 /* Modal Styles */
@@ -2031,51 +2109,156 @@ input:checked + .slider:before {
   color: #888;
 }
 
+/* ========================================= */
+/* UPDATE BANNER STYLES                      */
+/* ========================================= */
+
+.update-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 80px; /* Offset from sidebar (64px + margin) */
+    width: 380px;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 9999;
+    color: #e5e7eb;
+    font-family: 'Inter', sans-serif;
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.update-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.update-icon {
+    font-size: 24px;
+}
+
+.update-info {
+    flex: 1;
+}
+
+.update-info h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.version-tag {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Actions Row */
 .update-actions {
-  display: flex;
-  gap: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
-.primary-btn.small, .secondary-btn.small {
-  padding: 6px 12px;
-  font-size: 11px;
+.btn-outline-sm {
+    background: transparent;
+    border: 1px solid #444;
+    color: #9ca3af;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
+.btn-outline-sm:hover {
+    border-color: #666;
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+}
+
+.btn-primary-sm {
+    background-color: #3b82f6; /* Blue */
+    border: none;
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary-sm:hover {
+    background-color: #2563eb;
+}
+
+.btn-primary-sm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Warning Box */
 .update-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 8px;
-  padding: 10px;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  color: #f59e0b;
-  font-size: 11px;
-  line-height: 1.4;
+    background: rgba(217, 119, 6, 0.1); /* Amber tint */
+    border: 1px solid #d97706;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
 }
 
+.update-warning .warning-icon {
+    color: #d97706;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.update-warning p {
+    margin: 0;
+    font-size: 12px;
+    color: #fbbf24;
+    line-height: 1.4;
+}
+
+/* Progress Bar */
 .update-progress-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    margin-top: 12px;
 }
 
-.progress-bar-wrapper {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  overflow: hidden;
+.progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
 }
 
 .progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  width: 0%;
-  transition: width 0.3s ease;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s ease;
 }
 
-#update-progress-text {
-  font-size: 10px;
-  color: #888;
-  text-align: right;
+.progress-text {
+    display: block;
+    text-align: right;
+    font-size: 11px;
+    color: #6b7280;
 }
