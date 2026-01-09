@@ -1187,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Onboarding Tour Logic ---
     // --- Onboarding Tour Logic ---
     async function initTour() {
-        let currentVersion = '1.0.2';
+        let currentVersion = '1.0.3';
         try {
              currentVersion = await window.electronAPI.getAppVersion();
         } catch (e) { console.error(e); }
@@ -1199,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawSteps = [
             {
                 element: null, 
-                title: "Welcome to AI Assistant 1.0.2",
+                title: "Welcome to AI Assistant 1.0.3",
                 text: "We've upgraded your workspace! Now featuring File Conversion, Sidebar Controls, and more."
             },
             {
@@ -2883,12 +2883,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if(notesBtn && info.releaseNotes) {
                 notesBtn.onclick = () => {
-                   // Copy notes to clipboard instead of alert? Or just alert for now since toast handles small messages.
-                   // Let's use toast for "Notes copied" if I cannot show modal.
-                   // But for now, keeping alert for notes is acceptable as notes are long. 
-                   // Or I can inject them into the banner? 'Expand' logic is complex to inject blindly.
-                   // I'll stick to alert for notes for now, or just show toast "View release notes on GitHub".
-                   window.electronAPI.openExternal("https://github.com/ankit3890/AI-Floating-Assistant/releases");
+                   if (info.releaseNotes) {
+                       alert(`Release Notes v${info.version}:\n\n${info.releaseNotes}`);
+                   } else {
+                       window.electronAPI.openExternal("https://github.com/ankit3890/AI-Floating-Assistant/releases");
+                   }
                 };
             }
         });

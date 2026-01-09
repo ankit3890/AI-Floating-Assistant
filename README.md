@@ -1,8 +1,8 @@
-# AI Floating Assistant (Anti Gravith) 🚀
+# AI Floating Assistant 🚀
 
 **AI Floating Assistant** is a powerful, glassmorphic desktop workspace that stays pinned above all your applications. It brings multiple AI models and productivity tools directly to your fingertips, eliminating tab-switching and fragmented workflows.
 
-![AI Floating Assistant](logo.svg)
+![AI Floating Assistant]
 
 ---
 
@@ -59,6 +59,8 @@ Anti Gravith features a built-in **automated update system**.
 
 | Version    | Main Changes                                                                  |
 | :--------- | :---------------------------------------------------------------------------- |
+| **v1.0.3** | Overall UI fix, Planning Board: Screen capture tool, Draw on Screen tool, Image Rotation, Independent X/Y Scaling, Snap Guides.         |
+| **v1.0.2** | Screen Drawing Tool (Canvas), Per-Tool Settings, Offline Icons.               |
 | **v1.0.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode. |
 
 ---
@@ -71,7 +73,22 @@ Anti Gravith features a built-in **automated update system**.
 | `Ctrl + Shift + C` | Context Send (Copy + Paste to AI) |
 | `Ctrl + 1-9`       | Switch between AI Models          |
 | `Ctrl + Shift + D` | Toggle Compact Mode               |
+| `Ctrl + Shift + H` | Toggle Screen Drawing Overlay     |
 | `Ctrl + Alt + S`   | Capture Screen to Board           |
+
+---
+
+## 🎨 Screen Drawing Tool
+
+A full-screen overlay that lets you draw, highlight, and annotate directly on your screen.
+
+- **Toggle Overlay**: `Ctrl + Shift + H` (or click "Monitor" icon in Planning Board)
+- **Tools**:
+  - **Pen (P)**: Freehand drawing. Click arrow for Color/Size.
+  - **Highlighter (H)**: Transparent marker. Click arrow for Color/Size.
+  - **Eraser (E)**: Erase strokes.
+  - **Lasso Select (L)**: Select and move strokes.
+- **Actions**: `Ctrl+Z` (Undo), `Ctrl+Y` (Redo), `Esc` (Exit)
 
 ---
 

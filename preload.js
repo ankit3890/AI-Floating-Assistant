@@ -44,6 +44,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startCaptureBoard: () => ipcRenderer.send('start-capture-board'),
   onBoardInsertImage: (callback) => ipcRenderer.on('board-insert-image', (event, dataUrl) => callback(dataUrl)),
 
+  // Screen Drawing Overlay API
+  startScreenDrawing: () => ipcRenderer.send('start-screen-drawing'),
+
   // Update API
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   startDownloadUpdate: () => ipcRenderer.invoke('start-download-update'),

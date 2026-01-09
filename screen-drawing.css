@@ -1,0 +1,233 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#drawing-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    cursor: crosshair;
+    touch-action: none; /* Prevent scrolling */
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+    pointer-events: none; /* Let clicks pass through to canvas where UI is NOT present */
+}
+
+/* Floating Toolbar */
+.toolbar {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 30, 0.85); /* Dark semi-transparent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    pointer-events: auto; /* Re-enable clicks for toolbar */
+    transition: box-shadow 0.2s;
+    user-select: none;
+}
+
+.toolbar:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.drag-handle {
+    color: rgba(255, 255, 255, 0.3);
+    cursor: grab;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Buttons */
+.tool-btn, .action-btn, .exit-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.tool-btn:hover, .action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tool-btn.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #4facfe; /* Highlight color */
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+}
+
+.exit-btn {
+    color: #ff6b6b;
+}
+
+.exit-btn:hover {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff8787;
+}
+
+.separator {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 4px;
+}
+
+/* Tool Grouping */
+.tool-group {
+    position: relative; /* For absolute popover */
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-right: 4px;
+}
+
+.tool-group .tool-btn {
+    border-radius: 8px 0 0 8px; /* Connected look */
+    margin-right: -1px; /* Overlap borders slightly */
+}
+
+.settings-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    width: 16px;
+    height: 36px;
+    border-radius: 0 8px 8px 0; /* Connected look */
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Tool Popover */
+.tool-popover {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 50px; /* Below toolbar */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 100;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tool-popover.active {
+    display: flex;
+}
+
+/* Popover Arrow */
+.tool-popover::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid rgba(255, 255, 255, 0.15);
+}
+
+.popover-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+}
+
+/* Updated Controls inside Popover */
+.mini-color-wrapper {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.tool-color-picker {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 150%;
+    height: 150%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border: none;
+}
+
+.tool-size-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    outline: none;
+}
+
+.tool-size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Selected state for Lasso items (Canvas render logic, but maybe UI hints later) */

@@ -319,15 +319,16 @@
 .board-element-image {
     background: rgba(42, 42, 42, 0.5);
     border-radius: 8px;
-    overflow: hidden;
+    /* overflow: hidden; REMOVED to allow handles to show */
 }
 
 .board-element-image img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: fill; /* FIX: Stretch image to fill container */
     pointer-events: none; /* FIX: Let clicks pass through to parent */
+    border-radius: 8px; /* Match parent radius */
 }
 
 /* Drawing Block */
@@ -338,26 +339,69 @@
 
 .board-element-drawing svg {
     pointer-events: none;
+    overflow: visible; /* Ensure drawing strokes don't get clipped if thick */
 }
 
 /* Resize Handle */
 .resize-handle {
     position: absolute;
-    bottom: -4px;
-    right: -4px;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     background: #3b82f6;
-    border: 2px solid #fff;
+    border: 1px solid #fff;
     border-radius: 50%;
-    cursor: nwse-resize;
-    z-index: 10;
+    z-index: 100;
     pointer-events: all;
+    box-shadow: 0 0 2px rgba(0,0,0,0.5);
 }
 
 .resize-handle:hover {
     background: #2563eb;
     transform: scale(1.2);
+}
+
+/* Handle Positions */
+.handle-n  { top: -5px; left: 50%; margin-left: -5px; cursor: n-resize; }
+.handle-s  { bottom: -5px; left: 50%; margin-left: -5px; cursor: s-resize; }
+.handle-e  { right: -5px; top: 50%; margin-top: -5px; cursor: e-resize; }
+.handle-w  { left: -5px; top: 50%; margin-top: -5px; cursor: w-resize; }
+.handle-ne { top: -5px; right: -5px; cursor: ne-resize; }
+.handle-nw { top: -5px; left: -5px; cursor: nw-resize; }
+.handle-se { bottom: -5px; right: -5px; cursor: se-resize; }
+.handle-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+
+/* Rotation Handle */
+.rotate-handle {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    margin-left: -6px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border: 2px solid #3b82f6;
+    border-radius: 50%;
+    cursor: grab;
+    z-index: 100;
+    pointer-events: all;
+}
+
+.rotate-handle:active {
+    cursor: grabbing;
+    background: #3b82f6;
+}
+
+/* Connector line for rotation handle */
+.rotate-handle::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 4px;
+    width: 2px;
+    height: 18px;
+    background: #3b82f6;
+    z-index: -1;
+    pointer-events: none;
 }
 
 /* Resize Handles */
@@ -543,4 +587,30 @@ kbd {
 .instruction-overlay.hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Snap Guide Line */
+.snap-guide-line {
+    position: absolute;
+    background: #3b82f6;
+    pointer-events: none;
+    z-index: 2000; /* Above everything */
+    display: none;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.snap-guide-line.horizontal {
+    height: 1px;
+    left: 0;
+    width: 100%;
+    border-top: 1px dashed #3b82f6;
+    background: transparent;
+}
+
+.snap-guide-line.vertical {
+    width: 1px;
+    top: 0;
+    height: 100%;
+    border-left: 1px dashed #3b82f6;
+    background: transparent;
 }

@@ -41,9 +41,12 @@ class PlanningBoard {
         this.isResizing = false;
         this.panStart = { x: 0, y: 0 };
         this.dragStart = { x: 0, y: 0 };
-        this.resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+        this.isRotating = false;
+        this.resizeStart = { x: 0, y: 0, width: 0, height: 0, rotation: 0 };
+        this.rotateStart = { x: 0, y: 0, initialAngle: 0 };
         this.draggedElement = null;
         this.resizingElement = null;
+        this.resizeHandleType = null;
         this.selectedElements = [];
         
         // Text tool sizing state
@@ -281,7 +284,21 @@ class PlanningBoard {
         
         if (helpBtn && helpModal) helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
         if (helpClose && helpModal) helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
+        if (helpBtn && helpModal) helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+        if (helpClose && helpModal) helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
         if (helpModal) helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+
+        // Screen Drawing Button
+        const screenDrawBtn = document.getElementById('board-screen-draw');
+        if (screenDrawBtn) {
+            screenDrawBtn.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.startScreenDrawing) {
+                    window.electronAPI.startScreenDrawing();
+                } else {
+                    console.error('Screen Drawing API not available');
+                }
+            });
+        }
 
         // Board Actions
         const newBtn = document.getElementById('board-new');
@@ -1054,7 +1071,8 @@ class PlanningBoard {
             y: y,
             width: 200,
             height: 200,
-            src: dataUrl
+            src: dataUrl,
+            rotation: 0
         };
         
         this.elements.push(imageBlock);
@@ -1071,13 +1089,22 @@ class PlanningBoard {
         for (let element of this.elements) {
             const el = document.createElement('div');
             el.className = `board-element board-element-${element.type}`;
+            
+            // Apply selection class
+            if (this.selectedElements.some(sel => sel.id === element.id)) {
+                el.classList.add('selected');
+            }
+
             el.dataset.id = element.id;
             el.style.left = element.x + 'px';
             el.style.top = element.y + 'px';
             el.style.width = element.width + 'px';
             el.style.height = element.height + 'px';
             
-
+            // Apply rotation
+            if (element.rotation) {
+                el.style.transform = `rotate(${element.rotation}deg)`;
+            }
 
             // FIX: Add explicit listener for dragging/selecting (Critical for duplicates)
             el.addEventListener('mousedown', (e) => this.handleElementMouseDown(e));
@@ -1096,7 +1123,9 @@ class PlanningBoard {
                 img.src = element.src;
                 img.style.width = '100%';
                 img.style.height = '100%';
-                img.style.objectFit = 'contain';
+                img.style.objectFit = 'fill'; // FIX: Stretch image to fill container
+                img.style.pointerEvents = 'none'; // FIX: Let clicks pass through to parent
+                img.style.borderRadius = '8px'; // Match parent radius
                 el.appendChild(img);
             } else if (element.type === 'drawing') {
                 // Render drawing as SVG path
@@ -1114,10 +1143,6 @@ class PlanningBoard {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 
                 // Convert points to SVG path data (relative to element position)
-                // FIX: Don't subtract padding here! 
-                // element.x is already (minPoint - 10). 
-                // So (point - element.x) will be (point - (minPoint - 10)) = (rel + 10).
-                // This correctly places the drawing inside the padded box.
                 const minX = element.x; 
                 const minY = element.y;
                 let pathData = '';
@@ -1130,80 +1155,377 @@ class PlanningBoard {
                 path.setAttribute('d', pathData);
                 path.setAttribute('stroke', element.color);
                 
-                // FIX: Use strokeWidth, legacy fallback, prevent using bounding width
                 let sWidth = element.strokeWidth;
                 if (!sWidth) {
-                    // Safety check: Is 'width' a stroke or a box?
-                    // If width > 50, it's almost certainly a bounding box, NOT a stroke.
                     if (element.width && element.width < 50) sWidth = element.width;
-                    else sWidth = 3; // Default default
+                    else sWidth = 3; 
                 }
                 
                 path.setAttribute('stroke-width', sWidth);
                 path.setAttribute('stroke-linecap', 'round');
                 path.setAttribute('stroke-linejoin', 'round');
                 path.setAttribute('fill', 'none');
-                // REMOVED: pointer-events: none (Managed by setTool)
                 
                 svg.appendChild(path);
                 el.appendChild(svg);
                 
-                // Adjust element size to fit content
                 el.style.width = (element.width || element.boundingWidth || 100) + 'px';
                 el.style.height = (element.height || element.boundingHeight || 100) + 'px';
             }
             
             // Add resize handles for images and text when selected
             if ((element.type === 'image' || element.type === 'text') && 
-                this.selectedElements.includes(element)) {
-                const resizeHandle = document.createElement('div');
-                resizeHandle.className = 'resize-handle';
-                resizeHandle.dataset.elementId = element.id;
+                this.selectedElements.some(sel => sel.id === element.id)) {
                 
-                resizeHandle.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    this.startResize(element, e);
+                // Rotation Handle
+                const rotateHandle = document.createElement('div');
+                rotateHandle.className = 'rotate-handle';
+                rotateHandle.addEventListener('mousedown', (e) => {
+                    this.startRotate(element, e);
                 });
+                el.appendChild(rotateHandle);
+
+                // 8 Directional Handles
+                const directions = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
                 
-                el.appendChild(resizeHandle);
+                directions.forEach(dir => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle handle-${dir}`;
+                    handle.dataset.dir = dir;
+
+                    // Dynamic Cursor Calculation
+                    const cursor = this.getCursorForHandle(dir, element.rotation || 0);
+                    handle.style.cursor = cursor;
+                    
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        this.startResize(element, e, dir);
+                    });
+                    
+                    el.appendChild(handle);
+                });
             }
             
             this.elementsContainer.appendChild(el);
         }
     }
 
-    startResize(element, e) {
+    getCursorForHandle(dir, rotation) {
+        const baseAngles = {
+            'n': 0,
+            'ne': 45,
+            'e': 90,
+            'se': 135,
+            's': 180,
+            'sw': 225,
+            'w': 270,
+            'nw': 315
+        };
+
+        let angle = (baseAngles[dir] + rotation) % 360;
+        if (angle < 0) angle += 360;
+
+        // Snap to nearest 45
+        // 0, 180 -> ns-resize
+        // 90, 270 -> ew-resize
+        // 45, 225 -> nesw-resize
+        // 135, 315 -> nwse-resize
+
+        // Normalize to 0-180 for simpler checks (cursors are symmetric)
+        let effectiveAngle = angle % 180;
+
+        if (effectiveAngle >= 22.5 && effectiveAngle < 67.5) {
+            return 'nesw-resize';
+        } else if (effectiveAngle >= 67.5 && effectiveAngle < 112.5) {
+            return 'ew-resize';
+        } else if (effectiveAngle >= 112.5 && effectiveAngle < 157.5) {
+            return 'nwse-resize';
+        } else {
+            return 'ns-resize';
+        }
+    }
+
+    selectElement(element) {
+        // Clear previous selection
+        this.selectedElements = [element];
+        
+        // Full re-render to ensure handles are created/destroyed
+        this.renderElements();
+        
+        // Show delete button in toolbar
+        this.updateToolbar();
+    }
+
+    startResize(element, e, direction) {
         this.isResizing = true;
         this.resizingElement = element;
+        this.resizeHandleType = direction;
+        
+        // Transform mouse point to account for rotation
+        // Actually simpler: Work with unrotated coordinates logic if possible, 
+        // OR just simple delta logic for N/S/E/W/corners
+        
         this.resizeStart = {
             x: e.clientX,
             y: e.clientY,
             width: element.width,
-            height: element.height
+            height: element.height,
+            elementX: element.x,
+            elementY: element.y,
+            rotation: element.rotation || 0
         };
         
         document.addEventListener('mousemove', this.handleResize);
         document.addEventListener('mouseup', this.handleResizeEnd);
     }
 
+    rotatePoint(x, y, cx, cy, angle) {
+        const radians = angle * (Math.PI / 180);
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        const nx = (cos * (x - cx)) + (sin * (y - cy)) + cx;
+        const ny = (cos * (y - cy)) - (sin * (x - cx)) + cy;
+        return { x: nx, y: ny };
+    }
+
+    startRotate(element, e) {
+        e.stopPropagation(); // Don't drag
+        e.preventDefault(); // Prevent text selection/drag behaviors
+        this.isRotating = true;
+        this.resizingElement = element;
+        
+        // Calculate center of element on screen
+        const elDOM = document.querySelector(`.board-element[data-id="${element.id}"]`);
+        if (!elDOM) return;
+        
+        const rect = elDOM.getBoundingClientRect();
+        
+        this.rotateStart = {
+            centerX: rect.left + rect.width / 2,
+            centerY: rect.top + rect.height / 2,
+            initialRotation: element.rotation || 0,
+            startAngle: Math.atan2(e.clientY - (rect.top + rect.height/2), e.clientX - (rect.left + rect.width/2))
+        };
+
+        document.addEventListener('mousemove', this.handleRotate);
+        document.addEventListener('mouseup', this.handleRotateEnd);
+    }
+
+    handleRotate = (e) => {
+        if (!this.isRotating || !this.resizingElement) return;
+
+        const currentAngle = Math.atan2(e.clientY - this.rotateStart.centerY, e.clientX - this.rotateStart.centerX);
+        let rotationChange = (currentAngle - this.rotateStart.startAngle) * (180 / Math.PI);
+        
+        let newRotation = this.rotateStart.initialRotation + rotationChange;
+        
+        // Normalize rotation to 0-360 range for cleaner math
+        let normalizedRot = newRotation % 360;
+        if (normalizedRot < 0) normalizedRot += 360;
+
+        // Snap Logic
+        const snapThreshold = 10; // Increased to 10 for easier snapping
+        let snapped = false;
+        
+        // Check cardinal directions (0, 90, 180, 270, 360)
+        const snapAngles = [0, 90, 180, 270, 360];
+        for (let angle of snapAngles) {
+            if (Math.abs(normalizedRot - angle) < snapThreshold) {
+                newRotation = Math.round(newRotation / 90) * 90; // Snap to nearest 90
+                snapped = true;
+                break;
+            }
+        }
+
+        // Shift key overrides auto-snap with 45-degree increments
+        if (e.shiftKey) {
+            newRotation = Math.round(newRotation / 45) * 45;
+            snapped = false; // Don't show "straight" guide for 45s unless it aligns with 90s
+            if (newRotation % 90 === 0) snapped = true;
+        }
+
+        this.resizingElement.rotation = newRotation;
+        
+        // Update ONLY rotation visually
+        const el = document.querySelector(`.board-element[data-id="${this.resizingElement.id}"]`);
+        if (el) {
+            el.style.transform = `rotate(${newRotation}deg)`;
+            
+            // Update cursors for all handles on this element
+            const handles = el.querySelectorAll('.resize-handle');
+            handles.forEach(handle => {
+                const dir = handle.dataset.dir;
+                if (dir) {
+                    handle.style.cursor = this.getCursorForHandle(dir, newRotation);
+                }
+            });
+        }
+
+        // Show/Hide Guide
+        if (snapped) {
+            this.showSnapGuide(this.resizingElement);
+        } else {
+            this.hideSnapGuide();
+        }
+    }
+
+    handleRotateEnd = () => {
+        if (this.isRotating) {
+            this.isRotating = false;
+            this.resizingElement = null;
+            this.hideSnapGuide(); // Clear guide
+            this.saveToStorage();
+            document.removeEventListener('mousemove', this.handleRotate);
+            document.removeEventListener('mouseup', this.handleRotateEnd);
+        }
+    }
+
+    showSnapGuide(element) {
+        // Create guide if it doesn't exist
+        let guide = document.getElementById('rotation-snap-guide');
+        if (!guide) {
+            guide = document.createElement('div');
+            guide.id = 'rotation-snap-guide';
+            guide.className = 'snap-guide-line horizontal'; // Default horizontal
+            // Append to .planning-board-viewport NOT element container so it spans screen
+            const viewport = document.querySelector('.planning-board-viewport');
+            if (viewport) viewport.appendChild(guide);
+        }
+
+        guide.style.display = 'block';
+        
+        // Position guide line through the center of the element
+        // Get Screen Coordinates of element center
+        const elDOM = document.querySelector(`.board-element[data-id="${element.id}"]`);
+        if (!elDOM) return;
+        const rect = elDOM.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Get Viewport relative coords safely
+        const viewport = document.querySelector('.planning-board-viewport');
+        if (!viewport) return;
+        const viewportRect = viewport.getBoundingClientRect();
+        
+        const relX = centerX - viewportRect.left;
+        const relY = centerY - viewportRect.top;
+
+        // Determine orientation based on rotation
+        const rot = Math.abs(element.rotation % 180);
+        if (rot < 45 || rot > 135) {
+             // Landscape-ish (0 or 180) -> Horizontal Line
+             guide.className = 'snap-guide-line horizontal';
+             guide.style.top = relY + 'px';
+             guide.style.left = '0px';
+             guide.style.width = '100%';
+             guide.style.height = '1px';
+        } else {
+             // Portrait-ish (90 or 270) -> Vertical Line
+             guide.className = 'snap-guide-line vertical';
+             guide.style.left = relX + 'px';
+             guide.style.top = '0px';
+             guide.style.height = '100%';
+             guide.style.width = '1px';
+        }
+    }
+
+    hideSnapGuide() {
+        const guide = document.getElementById('rotation-snap-guide');
+        if (guide) {
+            guide.style.display = 'none';
+        }
+    }
+
     handleResize = (e) => {
         if (!this.isResizing || !this.resizingElement) return;
         
-        const dx = (e.clientX - this.resizeStart.x) / this.viewState.scale;
-        const dy = (e.clientY - this.resizeStart.y) / this.viewState.scale;
+        const scale = this.viewState.scale;
         
-        // For images, maintain aspect ratio
-        if (this.resizingElement.type === 'image') {
-            const aspectRatio = this.resizeStart.width / this.resizeStart.height;
-            const newWidth = Math.max(50, this.resizeStart.width + dx);
-            this.resizingElement.width = newWidth;
-            this.resizingElement.height = newWidth / aspectRatio;
-        } else {
-            // For text, allow free resize
-            this.resizingElement.width = Math.max(100, this.resizeStart.width + dx);
-            this.resizingElement.height = Math.max(50, this.resizeStart.height + dy);
-        }
+        // 1. Calculate Delta in Local Space
+        const dxScreen = (e.clientX - this.resizeStart.x) / scale;
+        const dyScreen = (e.clientY - this.resizeStart.y) / scale;
         
+        // Convert screen delta to local delta (inverse rotation)
+        // CSS rotation is clockwise. Math rotation is usually CCW.
+        // We want to project screen vector onto local X/Y axes.
+        const rot = this.resizeStart.rotation || 0;
+        const rad = rot * (Math.PI / 180);
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        
+        // Inverse rotation (transpose matrix)
+        const dxLocal = dxScreen * cos + dyScreen * sin;
+        const dyLocal = -dxScreen * sin + dyScreen * cos;
+
+        const type = this.resizeHandleType;
+        const el = this.resizingElement;
+        
+        let newW = this.resizeStart.width;
+        let newH = this.resizeStart.height;
+
+        // 2. Calculate New Dimensions based on Handle Type
+        if (type.includes('e')) newW += dxLocal;
+        if (type.includes('w')) newW -= dxLocal;
+        if (type.includes('s')) newH += dyLocal;
+        if (type.includes('n')) newH -= dyLocal;
+
+        // Constraints
+        if (newW < 20) newW = 20;
+        if (newH < 20) newH = 20;
+
+        // 3. Anchor Point Logic to Prevent Drift
+        // We determine which point in LOCAL space should remain FIXED in SCREEN space.
+        // E.g. if dragging 'n', the 's' point (bottom-center) is the anchor.
+        
+        // Local coordinates of the anchor point (0..1 relative to width/height)
+        let anchorRatioX = 0.5;
+        let anchorRatioY = 0.5;
+
+        // If 'w', anchor is 'e' (1.0), etc.
+        if (type.includes('w')) anchorRatioX = 1.0; 
+        else if (type.includes('e')) anchorRatioX = 0.0;
+        
+        if (type.includes('n')) anchorRatioY = 1.0;
+        else if (type.includes('s')) anchorRatioY = 0.0;
+        
+        // Calculate the offsets of the anchor from the CENTER in the OLD box
+        const oldW = this.resizeStart.width;
+        const oldH = this.resizeStart.height;
+        const oldCenterX = this.resizeStart.elementX + oldW / 2;
+        const oldCenterY = this.resizeStart.elementY + oldH / 2;
+        
+        const localAnchorX_Old = (anchorRatioX - 0.5) * oldW;
+        const localAnchorY_Old = (anchorRatioY - 0.5) * oldH;
+        
+        // Rotate this offset to get Screen offset from Center
+        const screenAnchorOffsetX = localAnchorX_Old * cos - localAnchorY_Old * sin;
+        const screenAnchorOffsetY = localAnchorX_Old * sin + localAnchorY_Old * cos;
+        
+        // Current Screen Position of the Anchor (The Fixed Point)
+        const anchorScreenX = oldCenterX + screenAnchorOffsetX;
+        const anchorScreenY = oldCenterY + screenAnchorOffsetY;
+        
+        // Now calculate where the NEW Center must be to keep this Anchor fixed
+        const localAnchorX_New = (anchorRatioX - 0.5) * newW;
+        const localAnchorY_New = (anchorRatioY - 0.5) * newH;
+        
+        const screenAnchorOffsetX_New = localAnchorX_New * cos - localAnchorY_New * sin;
+        const screenAnchorOffsetY_New = localAnchorX_New * sin + localAnchorY_New * cos;
+        
+        // New Center = AnchorScreen - NewRotatedOffset
+        const newCenterX = anchorScreenX - screenAnchorOffsetX_New;
+        const newCenterY = anchorScreenY - screenAnchorOffsetY_New;
+        
+        // New Top-Left
+        const newX = newCenterX - newW / 2;
+        const newY = newCenterY - newH / 2;
+
+        // Apply Changes
+        el.width = newW;
+        el.height = newH;
+        el.x = newX;
+        el.y = newY;
+
         this.renderElements();
     }
 
@@ -1211,6 +1533,7 @@ class PlanningBoard {
         if (this.isResizing) {
             this.isResizing = false;
             this.resizingElement = null;
+            this.resizeHandleType = null;
             this.saveToStorage();
             
             document.removeEventListener('mousemove', this.handleResize);

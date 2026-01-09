@@ -15,7 +15,7 @@ const fs = require('fs');
 const WebSocket = require('ws'); // Added ws
 
 console.log('--------------------------------------------------');
-console.log('--- OPENROUTER / DEEPSEEK VERSION LOADED v2.5  ---');
+console.log('--- AI Floating Assistant v1.0.3  ---');
 console.log('--------------------------------------------------');
 
 // Simple storage using JSON file
@@ -221,6 +221,22 @@ function createWindow() {
       // Toggle compact mode via renderer
       mainWindow.webContents.send('toggle-compact-mode');
     }
+  });
+
+  // Screen Drawing Overlay (Ctrl+Shift+H)
+  globalShortcut.register('CommandOrControl+Shift+H', () => {
+      // Check if overlay is already open
+      if (drawingOverlayWindow && !drawingOverlayWindow.isDestroyed()) {
+          console.log('Shortcut: Closing drawing overlay...');
+          drawingOverlayWindow.close();
+      } else {
+          console.log('Shortcut: Opening drawing overlay...');
+          // Hide main window FIRST
+          if (mainWindow && mainWindow.isVisible()) {
+              mainWindow.hide();
+          }
+          createDrawingOverlay();
+      }
   });
 }
 
@@ -734,6 +750,59 @@ ipcMain.on('capture-cancel', () => {
 });
 
 // ============================================
+// SCREEN DRAWING OVERLAY (ANNOTATION TOOL)
+// ============================================
+
+let drawingOverlayWindow = null;
+
+function createDrawingOverlay() {
+    if (drawingOverlayWindow) return;
+
+    const cursor = screen.getCursorScreenPoint();
+    const display = screen.getDisplayNearestPoint(cursor);
+    const { x, y, width, height } = display.bounds;
+
+    drawingOverlayWindow = new BrowserWindow({
+        x, y, width, height,
+        frame: false,
+        transparent: true,
+        fullscreen: true, // Takes over everything
+        alwaysOnTop: true, // Above everything
+        skipTaskbar: true,
+        resizable: false,
+        movable: false,
+        webPreferences: {
+            nodeIntegration: true, // Needed for IPC
+            contextIsolation: false, // Simple setup for tool
+            backgroundThrottling: false
+        }
+    });
+
+    drawingOverlayWindow.loadFile('screen-drawing.html');
+    
+    // DEBUG: Open DevTools
+    // drawingOverlayWindow.webContents.openDevTools({ mode: 'detach' });
+
+    // On close, ensure clean state
+    drawingOverlayWindow.on('closed', () => {
+        drawingOverlayWindow = null;
+        if (mainWindow) {
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
+}
+
+ipcMain.on('start-screen-drawing', () => {
+    if (mainWindow) mainWindow.hide(); // Hide capabilities
+    createDrawingOverlay();
+});
+
+ipcMain.on('draw-exit', () => {
+    if (drawingOverlayWindow) drawingOverlayWindow.close();
+});
+
+// ============================================
 // AUTO UPDATER (PUSH UPDATES)
 // ============================================
 
@@ -830,23 +899,22 @@ autoUpdater.on('update-downloaded', (info) => {
 // IPC Handlers for Updates
 ipcMain.handle('check-for-updates', async () => {
   try {
+      // Check for internet connection first? AutoUpdater does it but throws.
+      // We wrap in try-catch to return 'null' or proper error object to renderer 
+      // instead of crashing or spamming console with net errors.
       const result = await autoUpdater.checkForUpdates();
-      // If check is skipped (e.g. no config in dev), it returns null/undefined
+      
       if (!result) {
-          console.log('[Main] Update check returned null (likely skipped)');
-          if (mainWindow) {
-              // Fake a 'not available' so UI doesn't hang
-              mainWindow.webContents.send('update-not-available', { 
-                  version: 'Dev/Unknown',
-                  currentVersion: app.getVersion()
-              });
-          }
+          console.log('[Main] Update check returned null (likely skipped/dev mode)');
+          // Return simulated 'not-available' for dev experience
+          return { updateInfo: { version: 'Dev' } }; 
       }
       return result;
   } catch (err) {
-      console.error('[Main] Update check error:', err);
-      // Let the renderer catch this
-      throw err;
+      console.error('[Main] Update check failed (handled):', err.message);
+      // Do NOT throw. Return a "failure" object meant for the UI.
+      // This prevents the "Error occurred in handler..." spam.
+      return { error: err.message }; 
   }
 });
 

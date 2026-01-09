@@ -1,5 +1,5 @@
 :root {
-  --sidebar-width: 60px; /* Reduced from 72px */
+  --sidebar-width: 50px; /* Reduced from 60px */
   --bg-color: #0d0d0d;
   --sidebar-bg: #131313;
   --text-color: #e0e0e0;
@@ -68,7 +68,7 @@ body {
 }
 
 .sidebar.expanded {
-  width: 240px; /* Wider expanded width */
+  width: 190px; /* Reduced from 240px */
   align-items: stretch; /* Stretch items to fill width */
   padding-left: 0; /* Remove padding left as items will have their own padding */
 }
@@ -93,17 +93,24 @@ body {
 
 .ai-list {
   list-style: none;
-  padding: 0;
+  padding: 12px 6px;
   margin: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center icons */
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  flex: 1; /* Take available space */
+  overflow-y: auto; /* Scroll if too tall */
+  overflow-x: hidden;
+  
   /* Hide scrollbar */
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
+/* Hide scrollbar */
 .ai-list::-webkit-scrollbar {
   display: none; /* Chrome */
 }
@@ -124,52 +131,145 @@ body {
   align-items: flex-start; /* Left align */
 }
 
-
-/* ... existing code ... */
-.ai-list {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 8px; /* Reduced side padding (10->8) */
-  gap: 4px; /* Reduced gap (8->4) */
-  width: 100%;
-  box-sizing: border-box;
-}
-
+/* AI Item - Main Button Style */
 .ai-item {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
-  height: 42px; /* Reduced height (48->42) */
-  border-radius: 10px; /* Slightly tighter radius */
+  width: 100%; /* Will fit container padding */
+  height: 36px; /* Standardize height */
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: #9ca3af;
-  padding: 0 10px; /* Reduced inner padding */
+  padding: 0; /* Centered icon usually doesn't need padding if flex-centered */
   box-sizing: border-box;
   position: relative;
+  justify-content: center; /* Default collapsed state */
 }
 
-.secondary-btn {
-  background-color: transparent;
-  color: #888;
-  border: 1px solid #444;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
+/* Expanded State Adjustment */
+.sidebar.expanded .ai-item {
+  justify-content: flex-start; /* Align Left */
+  padding-left: 10px;
+}
+
+/* Icon Sizing - CRITICAL */
+.ai-item .icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-item .icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+}
+
+/* AI Name Label (Text) */
+.ai-name {
+  opacity: 0;
+  width: 0;
+  display: none; /* Hide by default in collapsed */
+  margin-left: 12px;
+  font-size: 14px;
   font-weight: 500;
+  transition: opacity 0.2s 0.1s; /* Delay fade in */
+  white-space: nowrap;
+}
+
+.sidebar.expanded .ai-name {
+  opacity: 1;
+  width: auto;
+  display: block;
+}
+
+/* Active State Highlighting */
+.ai-item.active {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
+  color: #60a5fa; /* Blue text */
+}
+
+/* Active Indicator (Left Bar) */
+.ai-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px; /* Adjusted for 36px button */
+  background-color: #3b82f6;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 6px; /* Match ai-list padding */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  z-index: 10;
+}
+
+.footer-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Reduced from 12px to match ai-list */
+}
+
+/* Expanded Footer Row matches width */
+.sidebar.expanded .footer-row {
+    flex-direction: row;
+    gap: 16px;
+}
+
+/* Control Buttons (Footer) */
+.control-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 36px; /* Match ai-item */
+  height: 36px; /* Match ai-item */
+  padding: 0;
+  border-radius: 8px; /* Match ai-item */
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.secondary-btn:hover {
-  border-color: #666;
-  color: #ccc;
+.control-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05); /* Match ai-item hover */
+  color: #e5e7eb;
 }
 
-.separator-horizontal {
-  height: 1px;
-  background-color: #333;
-  margin: 20px 0;
+.control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.control-btn.active {
+  color: var(--accent-color);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
+}
+
+/* Incognito Active State */
+#quick-incognito-btn.active {
+    color: #a855f7; /* Purple */
+    background-color: rgba(168, 85, 247, 0.15);
 }
 
 /* Manage List Styles */
@@ -212,364 +312,6 @@ body {
 
 .delete-btn:hover {
   opacity: 1;
-}
-.ai-item {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-muted);
-  white-space: nowrap; /* Prevent text wrap */
-}
-
-.sidebar.expanded .ai-item {
-  width: 170px; /* Full width button */
-  justify-content: flex-start; /* Align Left */
-  padding-left: 10px;
-}
-
-/* Icon Adjustment */
-.ai-item .icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ai-list .ai-item .icon svg {
-    width: 20px;
-    height: 20px;
-    stroke-width: 1.5;
-}
-
-.ai-name {
-  opacity: 0;
-  width: 0;
-  display: none;
-  margin-left: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: opacity 0.2s 0.1s; /* Delay fade in */
-}
-
-.sidebar.expanded .ai-name {
-  opacity: 1;
-  width: auto;
-  display: block;
-}
-
-/* Sidebar Footer buttons also need expansion logic */
-/* Sidebar Footer */
-/* Sidebar Footer */
-.sidebar-footer {
-  margin-top: auto;
-  padding: 16px 8px; /* Less side padding */
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  box-sizing: border-box;
-  flex-shrink: 0; /* CRITICAL: Prevent shrinking */
-  background: var(--sidebar-bg); /* Ensure background covers content behind if needed */
-  z-index: 10;
-}
-
-.footer-row {
-  display: flex;
-  flex-direction: column; /* Default to column for collapsed state */
-  align-items: center;
-  justify-content: center;
-  gap: 12px; /* Space between stacked icons */
-}
-
-/* Expanded Footer Row matches width */
-.sidebar.expanded .footer-row {
-    flex-direction: row;
-    gap: 16px;
-}
-
-.control-btn {
-    background: transparent;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.control-btn:hover {
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-}
-
-.control-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.ai-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: #e5e7eb;
-}
-
-.ai-item.active {
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
-  color: #60a5fa; /* Blue text */
-}
-
-/* Active Indicator (Left Bar) */
-.ai-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 24px;
-  background-color: #3b82f6;
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-}
-
-.ai-name {
-    margin-left: 12px;
-    font-size: 15px;
-    font-weight: 500;
-    white-space: nowrap;
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
-    transition: opacity 0.2s;
-}
-
-.sidebar.expanded .ai-name {
-    opacity: 1;
-    width: auto;
-}
-
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Dim background */
-  backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-.modal-overlay.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.modal {
-  background: rgba(30, 30, 30, 0.9);
-  border: 1px solid #444;
-  border-radius: 16px;
-  width: 320px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  transform: translateY(0);
-  transition: transform 0.3s ease;
-  
-  /* Overflow handling */
-  max-height: 85vh; /* Never taller than 85% of screen */
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-content {
-    overflow-y: auto;
-    padding-right: 4px; /* Space for scrollbar */
-}
-
-.modal-overlay.hidden .modal {
-  transform: translateY(20px);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #888;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.close-btn:hover {
-  color: #fff;
-}
-
-.credit-box {
-  background: #252525;
-  padding: 12px;
-  border-radius: 8px;
-  margin: 16px 0;
-  text-align: center;
-}
-
-.credit-box span {
-  color: #888;
-  font-size: 12px;
-  display: block;
-}
-
-.credit-box strong {
-  color: var(--accent-color);
-  font-size: 18px;
-  display: block;
-  margin-top: 4px;
-}
-
-/* Custom AI styling */
-.add-ai-btn {
-  border: 1px dashed #444;
-  color: #888;
-}
-
-.add-ai-btn:hover {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-/* Form Styles */
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: #aaa;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px;
-  background: #222;
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: #fff;
-  font-family: inherit;
-  box-sizing: border-box; /* Important for padding */
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-}
-
-/* Allow text selection in inputs despite global user-select: none */
-input, textarea {
-  user-select: text;
-  -webkit-user-select: text;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-.primary-btn {
-  background-color: var(--accent-color);
-  color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-
-.primary-btn:hover {
-  opacity: 0.9;
-}
-
-.danger-btn {
-  background-color: transparent;
-  color: #ff4d4d;
-  border: 1px solid #ff4d4d;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.danger-btn:hover {
-  background-color: rgba(255, 77, 77, 0.1);
-}
-
-.icon {
-  width: 24px;
-  height: 24px;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-  margin-bottom: 24px;
-}
-
-.control-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px; /* Slightly larger targets */
-  border-radius: 8px;
-  color: var(--text-muted);
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.control-btn:hover {
-  background-color: var(--hover-color);
-  color: #fff;
-  transform: translateY(-1px);
-}
-
-.control-btn.active {
-  color: var(--accent-color);
-  background-color: rgba(59, 130, 246, 0.15);
-}
-
-/* Incognito Active State */
-#quick-incognito-btn.active {
-    color: #a855f7; /* Purple */
-    background-color: rgba(168, 85, 247, 0.15);
 }
 
 /* Main Content */
@@ -2261,4 +2003,74 @@ input:checked + .slider:before {
     text-align: right;
     font-size: 11px;
     color: #6b7280;
+}
+
+/* --- BUTTON UTILITIES (Settings Modal) --- */
+.primary-btn, .secondary-btn, .danger-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+}
+
+.primary-btn {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+}
+.primary-btn:hover {
+  background-color: #2563eb;
+}
+
+.secondary-btn {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #444;
+}
+.secondary-btn:hover {
+  background-color: #333;
+  border-color: #555;
+  color: #fff;
+}
+
+.danger-btn {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+.danger-btn:hover {
+  background-color: rgba(220, 38, 38, 0.2);
+  border-color: #ef4444;
+}
+
+/* --- ABOUT MODAL FIXES --- */
+/* Target inline styles in About Modal via specific selectors to override if needed */
+#modal-about-app code {
+  background-color: #2a2a2a !important;
+  color: #60a5fa !important;
+  border: 1px solid #444;
+}
+
+#modal-about-app h4 {
+  color: var(--accent-color) !important;
+}
+
+#modal-about-app span {
+   /* This might target too much, let's specific more if needed, 
+      but likely fine for the shortcut labels */
+   color: #ccc !important;
+}
+
+#modal-about-app .credit-box {
+  margin-top: 20px;
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #333;
 }

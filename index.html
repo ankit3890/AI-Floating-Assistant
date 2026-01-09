@@ -141,6 +141,9 @@
                   <button class="tool-btn" id="board-capture-btn" title="Capture Screen to Board (Ctrl+Alt+S)">
                       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                   </button>
+                  <button class="tool-btn" id="board-screen-draw" title="Draw on Screen (Full Screen Overlay)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line><path d="M15.5 8.5l-3.5 3.5l-3.5 -3.5"></path></svg>
+                  </button>
                   <div class="tool-divider"></div>
                   <button class="tool-btn" id="board-undo-btn" title="Undo (Ctrl+Z)">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
@@ -291,6 +294,7 @@
                       <tr><td><kbd>Ctrl</kbd> + <kbd>V</kbd></td><td>Paste Image</td></tr>
                       <tr><td><kbd>Mouse Wheel</kbd></td><td>Zoom In/Out</td></tr>
                       <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>S</kbd></td><td>Screen Capture to Board</td></tr>
+                      <tr><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd></td><td>Draw on screen</td></tr>
                       <tr><td><kbd>Drag</kbd> (Select Tool)</td><td>Pan Canvas</td></tr>
                       <tr><td><kbd>Double-click</kbd> Text</td><td>Edit Text</td></tr>
                   </table>
@@ -412,7 +416,7 @@
          <div class="credit-box">
            <span>Made by</span>
            <strong>Alex</strong>
-           <div style="margin-top:8px;font-size:10px;color:#666;">Version 1.0.2</div>
+           <div style="margin-top:8px;font-size:10px;color:#666;">Version 1.0.3</div>
          </div>
        </div>
      </div>
@@ -550,7 +554,7 @@
             </div>
             <div class="update-info">
                 <h3>New Update Available!</h3>
-                <span class="version-tag" id="update-version-text">v2.5.1</span>
+                <span class="version-tag" id="update-version-text">v1.0.3</span>
             </div>
             <div class="update-actions">
                 <button id="update-view-notes" class="btn-outline-sm">Notes</button>
