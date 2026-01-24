@@ -1,10 +1,16 @@
 # AI Floating Assistant 🚀
 
+**Current Version:** 1.0.4
+
+[![Download Now](https://img.shields.io/badge/Download-v1.0.4-blue?style=for-the-badge&logo=windows)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-Setup-1.0.4.exe)
+
 **AI Floating Assistant** is a powerful, glassmorphic desktop workspace that stays pinned above all your applications. It brings multiple AI models and productivity tools directly to your fingertips, eliminating tab-switching and fragmented workflows.
 
-![AI Floating Assistant]
+## ✨ What's New in v1.0.4
 
----
+- **UI & Navigation Fixes**: Resolved the black screen issue when switching from Compare Mode.
+- **Improved Reliability**: Fixed "Context Send" state cleanup for more consistent behavior.
+- **Performance**: Optimized webview persistence for snappier AI switching.
 
 ## 📥 [Download Latest Version](https://github.com/ankit3890/AI-Floating-Assistant/releases/latest)
 
@@ -57,11 +63,11 @@ Anti Gravith features a built-in **automated update system**.
 - **One-Click Install**: Download and apply updates directly within the app.
 - **Transparency**: Every update includes a security warning for unsigned builds, ensuring you always know what's happening.
 
-| Version    | Main Changes                                                                  |
-| :--------- | :---------------------------------------------------------------------------- |
-| **v1.0.3** | Overall UI fix, Planning Board: Screen capture tool, Draw on Screen tool, Image Rotation, Independent X/Y Scaling, Snap Guides.         |
-| **v1.0.2** | Screen Drawing Tool (Canvas), Per-Tool Settings, Offline Icons.               |
-| **v1.0.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode. |
+| Version    | Main Changes                                                                                                                    |
+| :--------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| **v1.0.3** | Overall UI fix, Planning Board: Screen capture tool, Draw on Screen tool, Image Rotation, Independent X/Y Scaling, Snap Guides. |
+| **v1.0.2** | Screen Drawing Tool (Canvas), Per-Tool Settings, Offline Icons.                                                                 |
+| **v1.0.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode.                                                   |
 
 ---
 
