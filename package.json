@@ -1,12 +1,12 @@
 {
   "name": "ai_pin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Floating AI Assistant",
   "repository": {
     "type": "git",
     "url": "https://github.com/ankit3890/AI-Floating-Assistant.git"
   },
-  "main": "main.js",
+  "main": "app/main/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
@@ -18,7 +18,8 @@
     "productName": "AI Floating Assistant",
     "win": {
       "target": "nsis",
-      "icon": "logo.ico",
+      "icon": "assets/icons/logo.ico",
+      "artifactName": "AI-Floating-Assistant-Setup-${version}.${ext}",
       "publish": [
         {
           "provider": "github",
@@ -29,19 +30,20 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "icon": "logo.icns",
+      "icon": "assets/icons/logo.icns",
       "category": "public.app-category.productivity"
     },
     "dmg": {
       "title": "AI Floating Assistant Installer",
-      "icon": "logo.icns"
+      "icon": "assets/icons/logo.icns"
     }
   },
   "keywords": [],
@@ -53,6 +55,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
     "ws": "^8.18.3"
