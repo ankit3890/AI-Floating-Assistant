@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https:; frame-src https:;">
+  <title>AI Floating Assistant</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <link rel="stylesheet" href="styles/update-modal.css">
+  <script src="feature-loader.js" defer></script>
+  <script src="renderer.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button id="menu-btn" class="control-btn" title="Toggle Menu">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div class="sidebar-content">
+          <ul class="ai-list" id="ai-list">
+            <!-- Dynamic Items -->
+          </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="footer-row">
+            <button id="btn-settings-app" class="control-btn" title="Settings">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+            <button id="btn-about-app" class="control-btn" title="About">
+               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </button>
+            <button id="toggle-top" class="control-btn" title="Pin / Unpin">
+               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                 <line x1="12" y1="17" x2="12" y2="22"></line>
+                 <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
+               </svg>
+            </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Browser Toolbar -->
+      <div id="browser-toolbar" class="browser-toolbar hidden">
+        <button class="nav-btn" id="nav-back" title="Back">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="nav-btn" id="nav-forward" title="Forward">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+        <button class="nav-btn" id="nav-reload" title="Reload">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <div class="address-bar-wrapper">
+             <input type="text" id="address-bar" placeholder="Enter URL..." spellcheck="false" />
+        </div>
+      </div>
+
+      <div id="webview-container" class="split-container">
+          <div id="pane-1" class="split-pane active-pane">
+              <webview
+                id="ai-view"
+                src="https://chatgpt.com"
+                partition="persist:ai_session_v2"
+                allowpopups
+                useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0"
+              ></webview>
+          </div>
+      </div> 
+
+      <!-- Compare Mode Pane -->
+      <div id="pane-compare" class="compare-pane hidden">
+          <div class="compare-header">
+              <span class="compare-title">Compare Mode</span>
+              <div class="sync-toggle-wrapper">
+                  <label for="sync-scroll-toggle">Sync Scroll</label>
+                  <input type="checkbox" id="sync-scroll-toggle" checked>
+              </div>
+          </div>
+          
+          <div class="compare-grid" id="compare-grid"></div>
+
+          <div class="compare-controls">
+              <div class="ai-toggles" id="ai-toggles"></div>
+              <div class="compare-input-row">
+                  <input type="text" id="compare-input" placeholder="Ask all AIs..." />
+                  <button id="compare-send-btn">
+                      <svg viewBox="0 0 24 24" fill="none" class="icon send-icon" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                  </button>
+              </div>
+          </div>
+      </div>
+
+       <!-- Context Send Action Menu -->
+      <div id="context-send-menu" class="context-menu hidden">
+        <button class="close-btn" id="close-context-menu" style="position: absolute; right: 8px; top: 8px;">✕</button>
+        <div class="context-menu-header">
+           <span class="context-preview" id="context-preview">Selected text...</span>
+        </div>
+        <div class="context-menu-actions">
+          <button class="context-action" data-action="explain">
+            <span class="action-icon">🔍</span>
+            <div class="action-details">
+                <span class="action-label">Explain</span>
+                <span class="action-key">1</span>
+            </div>
+          </button>
+          <button class="context-action" data-action="fix">
+            <span class="action-icon">🐛</span>
+             <div class="action-details">
+                <span class="action-label">Fix Bug</span>
+                <span class="action-key">2</span>
+            </div>
+          </button>
+          <button class="context-action" data-action="summarize">
+            <span class="action-icon">📝</span>
+             <div class="action-details">
+                <span class="action-label">Summarize</span>
+                <span class="action-key">3</span>
+            </div>
+          </button>
+          <button class="context-action" data-action="send">
+            <span class="action-icon">➡️</span>
+             <div class="action-details">
+                <span class="action-label">Send</span>
+                <span class="action-key">4</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+          <div id="footer-progress" class="footer-progress-bar"></div>
+          <div class="footer-left">
+            <button id="quick-incognito-btn" class="footer-btn" title="Toggle Incognito">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+                <span>Incognito</span>
+            </button>
+            <button id="quick-refresh-btn" class="footer-btn" title="Refresh Page">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Refresh</span>
+            </button>
+            <button id="hide-window-btn" class="footer-btn" title="Hide Window (Ctrl+Shift+A)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+                <span>Hide</span>
+            </button>
+          </div>
+          <div class="footer-controls">
+               <span id="app-status" class="status-indicator">Ready</span>
+          </div>
+      </footer>
+    </main>
+   
+   <!-- Modals -->
+   <div id="modal-about-app" class="modal-overlay hidden">
+     <div class="modal">
+       <div class="modal-header">
+         <h3>About AI Assistant</h3>
+         <button id="close-modal" class="close-btn">&times;</button>
+       </div>
+       <div class="modal-content">
+         <div class="about-hero">
+             <div class="app-logo-large">AI</div>
+             <p class="description">Floating desktop workspace for AI multitasking. Pin it, verify stats, and speed up your workflow.</p>
+         </div>
+         
+         <div class="shortcuts-box">
+           <h4>⌨️ Shortcuts</h4>
+           <div class="shortcut-list">
+             <div class="sc-row"><span>Toggle Window</span> <code>Ctrl+Shift+A</code></div>
+             <div class="sc-row"><span>Context Send</span> <code>Ctrl+Shift+C</code></div>
+             <div class="sc-row"><span>Switch AI</span> <code>Ctrl+1-9</code></div>
+             <div class="sc-row"><span>Draw</span> <code>Ctrl+Shift+H</code></div>
+           </div>
+         </div>
+         
+         <div class="about-footer">
+           <div class="credit">Version 1.0.4 • Created by Ankit</div>
+         </div>
+       </div>
+     </div>
+   </div>
+
+   <div id="modal-settings-app" class="modal-overlay hidden">
+     <div class="modal settings-modal">
+       <div class="modal-header">
+         <h3>Settings</h3>
+         <button id="close-settings-modal" class="close-btn">&times;</button>
+       </div>
+       <div class="modal-content no-padding">
+         <div class="settings-section">
+             <h4 class="settings-label">Sidebar AIs</h4>
+             <ul class="settings-list" id="manage-list"></ul>
+         </div>
+
+         <div class="settings-section">
+             <h4 class="settings-label">Features</h4>
+             <div id="sidebar-features-list" class="settings-list"></div>
+         </div>
+
+         <div class="settings-section">
+             <h4 class="settings-label">System</h4>
+             <div class="feature-toggle-row">
+                 <span>Launch at Startup</span>
+                 <label class="switch">
+                     <input type="checkbox" id="startup-toggle">
+                     <span class="slider"></span>
+                 </label>
+             </div>
+             
+            <button id="incognito-toggle-btn" class="secondary-btn w-full icon-btn-row">
+                <span>🕵️ Incognito Mode</span>
+                <span id="incognito-status" class="badge">OFF</span>
+            </button>
+         </div>
+
+         <div class="settings-actions-grid">
+             <button id="check-updates-btn" class="secondary-btn">Check Updates</button>
+             <button id="open-github-btn" class="secondary-btn">GitHub</button>
+             <button id="replay-tour-btn" class="secondary-btn">Tour</button>
+             <button id="reset-defaults-btn" class="secondary-btn">Reset</button>
+         </div>
+         
+         <div style="padding: 10px 20px 20px;">
+            <button id="clear-cache-btn" class="danger-btn w-full">Clear Data & Reset</button>
+         </div>
+       </div>
+     </div>
+   </div>
+   
+   <div id="tour-container"></div>
+    
+   <div id="bubble-view" class="bubble-overlay hidden">
+       <div class="bubble-pill">
+           <div class="bubble-icon">🤖</div>
+           <span class="bubble-text">AI Pin</span>
+           <button id="expand-btn" class="bubble-expand-btn">⤢</button>
+       </div>
+   </div>
+
+    <div id="modal-add-ai" class="modal-overlay hidden">
+      <div class="modal sm-modal">
+        <div class="modal-header">
+          <h3>Add New AI</h3>
+          <button id="close-add-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-content">
+          <div class="form-group">
+            <label for="new-ai-name">Name</label>
+            <input type="text" id="new-ai-name" placeholder="E.g., QuillBot" />
+          </div>
+          <div class="form-group">
+            <label for="new-ai-url">Website URL</label>
+            <input type="text" id="new-ai-url" placeholder="https://quillbot.com" />
+          </div>
+          <button id="save-ai-btn" class="primary-btn w-full">Add to Sidebar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Modal (Reusing existing structure but ensuring it fits new style if needed) -->
+    <div id="modal-update" class="modal-overlay hidden">
+      <div class="modal settings-modal" style="max-width: 420px;">
+        <div class="modal-header border-0 pb-1">
+          <div class="flex-row gap-md">
+              <span style="font-size: 28px;">🚀</span>
+              <div>
+                  <h3 class="m-0 text-lg">New Update Available!</h3>
+                  <span id="update-version-tag" class="text-xs text-muted">v1.0.X</span>
+              </div>
+          </div>
+          <button id="close-update-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-content pt-2">
+          
+          <div id="update-actions" class="flex-row gap-sm mb-4">
+              <button id="notes-update-btn" class="secondary-btn min-w-70">Notes</button>
+              <button id="skip-update-btn" class="secondary-btn min-w-70">Later</button>
+              <button id="download-update-btn" class="primary-btn flex-1">Download Update</button>
+          </div>
+
+          <div class="update-warning-box">
+             <span class="text-lg mr-2">⚠️</span>
+             <span>Windows may show a security warning because this update is not digitally signed. Expected for early versions.</span>
+          </div>
+
+          <div id="update-progress-view" class="hidden">
+              <div class="flex-between text-xs mb-1 mt-3">
+                  <span>Downloading...</span>
+                  <span id="update-percent">0%</span>
+              </div>
+              <div id="update-progress-container">
+                  <div id="update-progress-bar"></div>
+              </div>
+          </div>
+          
+          <button id="restart-install-btn" class="primary-btn hidden w-full mt-3">Restart & Install</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Failure Modal -->
+    <div id="modal-login-failed" class="modal-overlay hidden">
+      <div class="modal sm-modal">
+        <div class="modal-header">
+          <h3>🔐 Login Failed</h3>
+          <button id="close-login-failed-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p class="text-sm text-muted mb-3">
+            Some websites block embedded browsers. Try clearing cache or use system browser.
+          </p>
+          <button id="clear-cache-retry-btn" class="primary-btn w-full mb-2">Clear Cache & Retry</button>
+          <button id="cancel-login-failed-btn" class="secondary-btn w-full mb-2">Cancel</button>
+          <div class="text-center">
+               <a href="#" id="open-in-system-browser-link" class="text-xs link">Open in system browser</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Generic Confirmation Modal -->
+    <div id="modal-confirm" class="modal-overlay hidden">
+      <div class="modal sm-modal">
+        <div class="modal-header">
+          <h3>Confirmation</h3>
+          <button id="close-confirm-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-content">
+          <p id="confirm-message" class="text-sm text-muted mb-4">Are you sure?</p>
+          <div class="flex-row gap-sm" style="justify-content: flex-end;">
+              <button id="btn-cancel-confirm" class="secondary-btn">Cancel</button>
+              <button id="btn-ok-confirm" class="danger-btn">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
