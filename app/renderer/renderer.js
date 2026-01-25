@@ -122,12 +122,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const expandBubbleBtn = document.getElementById('expand-btn');
     const bubblePill = document.querySelector('.bubble-pill');
 
-    // Login Failure Modal Refs
+    // Login Modal Refs (OAuth System Browser)
     const loginFailedModal = document.getElementById('modal-login-failed');
     const closeLoginFailedModal = document.getElementById('close-login-failed-modal');
-    const clearCacheRetryBtn = document.getElementById('clear-cache-retry-btn');
+    const oauthLoginBtn = document.getElementById('oauth-login-btn');
     const cancelLoginFailedBtn = document.getElementById('cancel-login-failed-btn');
-    const openInSystemBrowserLink = document.getElementById('open-in-system-browser-link');
 
     
     // Split View State
@@ -991,30 +990,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // [REMOVED] Duplicate Update Logic (See Global Handler at bottom of file)
 
-    // Login Failure Modal Handlers
+    // OAuth Login Modal Handlers
     addListener(closeLoginFailedModal, 'click', () => loginFailedModal.classList.add('hidden'));
     addListener(cancelLoginFailedBtn, 'click', () => loginFailedModal.classList.add('hidden'));
     
-    addListener(clearCacheRetryBtn, 'click', async () => {
+    // OAuth flow - open backend URL in system browser
+    const OAUTH_BACKEND_URL = 'YOUR_VERCEL_URL_HERE'; // User will replace this
+    addListener(oauthLoginBtn, 'click', () => {
         loginFailedModal.classList.add('hidden');
-        if (window.electronAPI && window.electronAPI.clearSessionData) {
-            const success = await window.electronAPI.clearSessionData();
-            if (success) {
-                const targetWv = getActiveWebview();
-                if (targetWv) targetWv.reload();
-                showToast('Cache cleared. Retrying login...');
-            } else {
-                showToast('Failed to clear cache.');
-            }
-        }
-    });
-
-    addListener(openInSystemBrowserLink, 'click', (e) => {
-        e.preventDefault();
-        const targetWv = getActiveWebview();
-        if (targetWv && window.electronAPI && window.electronAPI.openExternal) {
-            window.electronAPI.openExternal(targetWv.src);
-            loginFailedModal.classList.add('hidden');
+        if (window.electronAPI && window.electronAPI.openExternal) {
+            // Open OAuth backend in system browser
+            window.electronAPI.openExternal(`${OAUTH_BACKEND_URL}/auth/google/start`);
+            showToast('Opening login in system browser...');
+        } else {
+            showToast('Failed to open system browser');
         }
     });
 
@@ -1658,6 +1647,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Start Tour Logic
     setTimeout(initTour, 1000);
+
+    // ============================================
+    // OAUTH CALLBACK HANDLERS
+    // ============================================
+    
+    // Listen for successful OAuth from main process
+    if (window.electronAPI && window.electronAPI.onAuthSuccess) {
+        window.electronAPI.onAuthSuccess((token) => {
+            console.log('[OAuth] Token received from main process');
+            
+            // Store token securely
+            localStorage.setItem('app_token', token);
+            
+            // Show success message
+            showToast('✅ Successfully logged in!');
+            
+            // Reload active webview to apply login
+            const activeWv = getActiveWebview();
+            if (activeWv) {
+                activeWv.reload();
+            }
+        });
+    }
+    
+    // Listen for OAuth errors
+    if (window.electronAPI && window.electronAPI.onAuthError) {
+        window.electronAPI.onAuthError((error) => {
+            console.error('[OAuth] Error from main process:', error);
+            showToast('❌ Login failed. Please try again.');
+        });
+    }
 
 
     // ============================================

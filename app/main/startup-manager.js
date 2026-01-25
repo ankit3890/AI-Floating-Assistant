@@ -33,8 +33,8 @@ class StartupManager {
     isFirstRun() {
         // Changed key to force re-run of initialization logic since previous run 
         // might have failed due to dev-mode restrictions.
-        // v4: Force re-run again because v3 might have failed due to syntax error.
-        return !this.data.has_run_v4;
+        // v5: Force re-run to enable startup with new custom name parameter.
+        return !this.data.has_run_v5;
     }
 
     /**
@@ -42,14 +42,13 @@ class StartupManager {
      * If first run, enables startup by default.
      */
     initialize() {
-        // REMOVED aggressive cleanup: It seems to conflict with the valid entry 
-        // because both target the same electron.exe in dev mode.
-        // Since we already ran it in v3 transition, we can stop calling it on every boot.
+        // First, always clean up the old "Electron" entry if it exists
+        this._removeLegacyEntry();
 
         if (this.isFirstRun()) {
-            console.log('StartupManager: First run detected (v4). Enabling auto-startup.');
+            console.log('StartupManager: First run detected (v5). Enabling auto-startup.');
             this.enable(); // Enable by default
-            this.data.has_run_v4 = true;
+            this.data.has_run_v5 = true;
             this._saveData();
         } else {
             // Check if enabled, and if so, RE-APPLY to verify args (and ensure it's the correct one)
@@ -67,9 +66,10 @@ class StartupManager {
      */
     _removeLegacyEntry() {
         try {
+            // Remove old entry without custom name (would appear as "Electron")
             app.setLoginItemSettings({
                 openAtLogin: false,
-                args: ['--startup'], // The "bad" args that didn't have app path
+                args: ['--startup'],
                 path: process.execPath
             });
             console.log('StartupManager: Legacy entry cleanup attempted.');
@@ -92,7 +92,8 @@ class StartupManager {
         app.setLoginItemSettings({
             openAtLogin: true,
             args: args,
-            path: process.execPath
+            path: process.execPath,
+            name: 'AI Floating Assistant' // Custom name to avoid "Electron" in startup
         });
         console.log('StartupManager: Auto-startup ENABLED');
     }
@@ -101,7 +102,7 @@ class StartupManager {
      * Disable auto-startup
      */
     disable() {
-        // 1. Remove the correct current entry
+        // 1. Remove the correct current entry with custom name
         const args = ['--startup'];
         if (!app.isPackaged) {
             args.unshift(app.getAppPath());
@@ -110,7 +111,8 @@ class StartupManager {
         app.setLoginItemSettings({
             openAtLogin: false,
             args: args, 
-            path: process.execPath
+            path: process.execPath,
+            name: 'AI Floating Assistant'
         });
 
         // 2. Also ensure legacy entry is gone
@@ -130,7 +132,8 @@ class StartupManager {
         }
 
         const settings = app.getLoginItemSettings({
-            args: args
+            args: args,
+            name: 'AI Floating Assistant'
         });
         return settings.openAtLogin;
     }

@@ -6,7 +6,7 @@
 
 **AI Floating Assistant** is a powerful, glassmorphic desktop workspace that stays pinned above all your applications. It brings multiple AI models and productivity tools directly to your fingertips, eliminating tab-switching and fragmented workflows.
 
-## ✨ What's New in v1.0.4
+## What's New in v1.0.4
 
 - **UI & Navigation Fixes**: Resolved the black screen issue when switching from Compare Mode.
 - **Improved Reliability**: Fixed "Context Send" state cleanup for more consistent behavior.
@@ -18,9 +18,9 @@
 
 ---
 
-## ✨ Key Features
+- ## Key Features
 
-### 🤖 Multi-Model Sidebar
+### Multi-Model Sidebar
 
 Access the world's best AIs in one side-pane:
 
@@ -28,63 +28,15 @@ Access the world's best AIs in one side-pane:
 - Add your own custom AI URLs easily.
 - Switch models instantly with `Ctrl + 1-9`.
 
-### 🔍 Context Send (Auto-Copy)
+### Context Send (Auto-Copy)
 
 The fastest way to prompt. Highlight any text in any app (Word, Browser, PDF) and press `Ctrl + Shift + C`. The app will automatically copy the text and paste it into your active AI assistant.
 
-### 📊 Compare Mode
+### Compare Mode
 
 Need a second opinion? Side-by-side comparison allows you to prompt multiple AIs simultaneously and compare their results in a split-grid view.
 
-### 📝 Planning Board
-
-A creative infinite canvas for brainstorming:
-
-- Draw, add text, and paste images.
-- **Screen Capture**: Snap any part of your screen directly onto the board (`Ctrl + Alt + S`).
-- Save and load your boards for future reference.
-
-### 📄 File Converter
-
-Integrated file conversion powered by iLovePDF. Convert between PDF, DOCX, and PPTX without leaving your workspace.
-
-### 🫧 Compact & Incognito
-
-- **Compact (Bubble) Mode**: Collapse the assistant into a tiny floating pill when you need more screen space.
-- **Incognito**: Clear sessions and maintain privacy with one click.
-
----
-
-## 🔄 Push Updates
-
-Anti Gravith features a built-in **automated update system**.
-
-- **Notification**: You'll receive a non-blocking banner whenever a new version is released.
-- **One-Click Install**: Download and apply updates directly within the app.
-- **Transparency**: Every update includes a security warning for unsigned builds, ensuring you always know what's happening.
-
-| Version    | Main Changes                                                                                                                    |
-| :--------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| **v1.0.3** | Overall UI fix, Planning Board: Screen capture tool, Draw on Screen tool, Image Rotation, Independent X/Y Scaling, Snap Guides. |
-| **v1.0.2** | Screen Drawing Tool (Canvas), Per-Tool Settings, Offline Icons.                                                                 |
-| **v1.0.0** | Initial Public Release, Push Update System, Planning Board, and Compare Mode.                                                   |
-
----
-
-## ⌨️ Global Shortcuts
-
-| Shortcut           | Action                            |
-| :----------------- | :-------------------------------- |
-| `Ctrl + Shift + A` | Toggle Window Visibility          |
-| `Ctrl + Shift + C` | Context Send (Copy + Paste to AI) |
-| `Ctrl + 1-9`       | Switch between AI Models          |
-| `Ctrl + Shift + D` | Toggle Compact Mode               |
-| `Ctrl + Shift + H` | Toggle Screen Drawing Overlay     |
-| `Ctrl + Alt + S`   | Capture Screen to Board           |
-
----
-
-## 🎨 Screen Drawing Tool
+## Screen Drawing Tool
 
 A full-screen overlay that lets you draw, highlight, and annotate directly on your screen.
 
@@ -96,9 +48,34 @@ A full-screen overlay that lets you draw, highlight, and annotate directly on yo
   - **Lasso Select (L)**: Select and move strokes.
 - **Actions**: `Ctrl+Z` (Undo), `Ctrl+Y` (Redo), `Esc` (Exit)
 
+### Incognito
+
+- **Incognito**: Clear sessions and maintain privacy with one click.
+
 ---
 
-## 🛠️ Tech Stack
+## Push Updates
+
+Features a built-in **automated update system**.
+
+- **Notification**: You'll receive a non-blocking banner whenever a new version is released.
+- **One-Click Install**: Download and apply updates directly within the app.
+- **Transparency**: Every update includes a security warning for unsigned builds, ensuring you always know what's happening.
+
+stable version : 1.0.4
+
+## Global Shortcuts
+
+| Shortcut           | Action                            |
+| :----------------- | :-------------------------------- |
+| `Ctrl + Shift + A` | Toggle Window Visibility          |
+| `Ctrl + Shift + C` | Context Send (Copy + Paste to AI) |
+| `Ctrl + 1-9`       | Switch between AI Models          |
+| `Ctrl + Shift + H` | Toggle Screen Drawing Overlay     |
+
+---
+
+## Tech Stack
 
 - **Engine**: Electron
 - **Frontend**: Vanilla JS, CSS3 (Glassmorphism)

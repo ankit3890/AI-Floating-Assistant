@@ -75,6 +75,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onToggleCompareMode: (cb) => subscribe('toggle-compare-mode', cb),
   onToggleCompactMode: (cb) => subscribe('toggle-compact-mode', cb),
   onBoardInsertImage: (cb) => subscribe('board-insert-image', cb),
+
+  // ---------------- OAuth ----------------
+  onAuthSuccess: (cb) => subscribe('auth-success', cb),
+  onAuthError: (cb) => subscribe('auth-error', cb),
 });
 
 contextBridge.exposeInMainWorld('drawingAPI', {

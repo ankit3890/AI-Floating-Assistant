@@ -221,10 +221,11 @@
              <h4 class="settings-label">System</h4>
              <div class="feature-toggle-row">
                  <span>Launch at Startup</span>
-                 <label class="switch">
+                 <h5 class="settings-label">Search 'StartUp' in settings and look for 'Ai floating assistant' and enable/disable it</h5>
+                 <!-- <label class="switch">
                      <input type="checkbox" id="startup-toggle">
                      <span class="slider"></span>
-                 </label>
+                 </label> -->
              </div>
              
             <button id="incognito-toggle-btn" class="secondary-btn w-full icon-btn-row">
@@ -318,22 +319,20 @@
       </div>
     </div>
 
-    <!-- Login Failure Modal -->
+    <!-- Login Required Modal (OAuth System Browser) -->
     <div id="modal-login-failed" class="modal-overlay hidden">
       <div class="modal sm-modal">
         <div class="modal-header">
-          <h3>🔐 Login Failed</h3>
+          <h3>🔐 Login Required</h3>
           <button id="close-login-failed-modal" class="close-btn">&times;</button>
         </div>
         <div class="modal-content">
           <p class="text-sm text-muted mb-3">
-            Some websites block embedded browsers. Try clearing cache or use system browser.
+            <strong>Google requires login in your system browser for security.</strong><br>
+            Embedded browser login is blocked to protect your account.
           </p>
-          <button id="clear-cache-retry-btn" class="primary-btn w-full mb-2">Clear Cache & Retry</button>
-          <button id="cancel-login-failed-btn" class="secondary-btn w-full mb-2">Cancel</button>
-          <div class="text-center">
-               <a href="#" id="open-in-system-browser-link" class="text-xs link">Open in system browser</a>
-          </div>
+          <button id="oauth-login-btn" class="primary-btn w-full mb-2">Login with Google</button>
+          <button id="cancel-login-failed-btn" class="secondary-btn w-full">Cancel</button>
         </div>
       </div>
     </div>

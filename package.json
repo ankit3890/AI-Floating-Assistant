@@ -44,7 +44,15 @@
     "dmg": {
       "title": "AI Floating Assistant Installer",
       "icon": "assets/icons/logo.icns"
-    }
+    },
+    "protocols": [
+      {
+        "name": "AI Floating Assistant",
+        "schemes": [
+          "aifloatingassistant"
+        ]
+      }
+    ]
   },
   "keywords": [],
   "author": "Ankit",

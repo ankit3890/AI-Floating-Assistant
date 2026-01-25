@@ -1,5 +1,5 @@
 // main.js
-const { app, session, ipcMain, clipboard, BrowserWindow } = require('electron');
+const { app, session, ipcMain, clipboard, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
 const startupManager = require('./startup-manager');
@@ -9,6 +9,9 @@ const Store = require('./store');
 
 // Init Store reference (initialized in app.ready)
 let storeInstance = null;
+
+// Store main window reference for OAuth callback
+let mainWindowRef = null;
 
 // ---------------------------------------------
 // App Flags
@@ -22,6 +25,78 @@ console.log('--------------------------------------------------');
 // Reduce automation detection
 app.commandLine.appendSwitch('disable-site-isolation-trials');
 app.commandLine.appendSwitch('disable-features', 'AutomationControlled');
+
+// ---------------------------------------------
+// Custom Protocol Registration (OAuth Callback)
+// ---------------------------------------------
+const PROTOCOL_NAME = 'aifloatingassistant';
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(PROTOCOL_NAME, process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient(PROTOCOL_NAME);
+}
+
+// Handle deep links (OAuth callback)
+const handleDeepLink = (url) => {
+  console.log('[Deep Link] Received:', url);
+  
+  if (!url.startsWith(`${PROTOCOL_NAME}://`)) return;
+  
+  try {
+    const parsedUrl = new URL(url);
+    const token = parsedUrl.searchParams.get('token');
+    const error = parsedUrl.searchParams.get('error');
+    
+    if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+      // Show and focus window
+      if (mainWindowRef.isMinimized()) mainWindowRef.restore();
+      mainWindowRef.show();
+      mainWindowRef.focus();
+      
+      // Send auth result to renderer
+      if (token) {
+        console.log('[OAuth] Success - sending token to renderer');
+        mainWindowRef.webContents.send('auth-success', token);
+      } else if (error) {
+        console.log('[OAuth] Error:', error);
+        mainWindowRef.webContents.send('auth-error', error);
+      }
+    }
+  } catch (err) {
+    console.error('[Deep Link Error]', err);
+  }
+};
+
+// macOS: Handle protocol from open-url event
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
+});
+
+// Windows: Handle protocol from second-instance
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Windows: commandLine includes the deep link URL
+    const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL_NAME}://`));
+    if (url) {
+      handleDeepLink(url);
+    }
+    
+    // Focus existing window
+    if (mainWindowRef) {
+      if (mainWindowRef.isMinimized()) mainWindowRef.restore();
+      mainWindowRef.show();
+      mainWindowRef.focus();
+    }
+  });
+}
 
 // ---------------------------------------------
 // IPC: System
@@ -121,6 +196,7 @@ app.whenReady().then(() => {
 
   // -------- Create Main Window --------
   const mainWindow = windowManager.createWindow(isStartupLaunch);
+  mainWindowRef = mainWindow; // Store reference for OAuth callback
 
   // -------- Auto Update --------
   autoUpdate.setupAutoUpdater(mainWindow);
