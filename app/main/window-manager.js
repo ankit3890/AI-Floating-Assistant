@@ -69,6 +69,9 @@ function createWindow(isStartupLaunch) {
     mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
     mainWindow.once('ready-to-show', () => {
+        // Open DevTools for debugging
+        // mainWindow.webContents.openDevTools();
+        
         if (isStartupLaunch) {
             console.log('App launched via Auto-Startup. Opening in background.');
             mainWindow.showInactive();

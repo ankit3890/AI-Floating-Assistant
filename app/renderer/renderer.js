@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loginFailedModal = document.getElementById('modal-login-failed');
     const closeLoginFailedModal = document.getElementById('close-login-failed-modal');
     const oauthLoginBtn = document.getElementById('oauth-login-btn');
+    const retryLoginBtn = document.getElementById('retry-login-btn');
     const cancelLoginFailedBtn = document.getElementById('cancel-login-failed-btn');
 
     
@@ -147,14 +148,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Initial Webview Setup - Put existing one in cache
+    console.log('[Init] Setting up initial webviews...');
+    console.log('[Init] webview1:', webview1);
+    console.log('[Init] webview2:', webview2);
+    
     if (webview1 && pane1) {
         const initialUrl = webview1.getAttribute('src') || 'https://chatgpt.com';
         paneWebviewCache['pane-1'][initialUrl] = webview1;
+        console.log('[Init] Calling setupWebviewListeners for webview1');
         setupWebviewListeners(webview1);
     }
     if (webview2 && pane2) {
         const initialUrl = webview2.getAttribute('src') || 'https://gemini.google.com';
         paneWebviewCache['pane-2'][initialUrl] = webview2;
+        console.log('[Init] Calling setupWebviewListeners for webview2');
         setupWebviewListeners(webview2);
     }
 
@@ -262,48 +269,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Centralized Webview Listener Setup
-    function setupWebviewListeners(wv) {
-        if (!wv) return;
+    // setupWebviewListeners function moved to line 1031 where it has full error detection
 
-        // Navigation Events
-        wv.addEventListener('did-navigate', (e) => {
-             if (wv === getActiveWebview()) {
-                 if (addressBar) addressBar.value = e.url;
-                 updateNavButtons(wv);
-             }
-        });
-
-        wv.addEventListener('did-navigate-in-page', (e) => {
-             if (wv === getActiveWebview()) {
-                 if (addressBar) addressBar.value = e.url;
-                 updateNavButtons(wv);
-             }
-        });
-        
-        wv.addEventListener('did-start-loading', () => {
-             loadingWebviews.add(wv);
-             updateFooterProgress();
-        });
-        
-        const stopLoading = () => {
-             loadingWebviews.delete(wv);
-             updateFooterProgress();
-             if (wv === getActiveWebview()) {
-                 updateNavButtons(wv);
-             }
-        };
-
-        wv.addEventListener('did-stop-loading', stopLoading);
-        wv.addEventListener('did-finish-load', stopLoading);
-        wv.addEventListener('did-fail-load', stopLoading);
-        wv.addEventListener('destroyed', stopLoading);
-
-        // New Window -> Open in System Browser
-        wv.addEventListener('new-window', (e) => {
-            e.preventDefault();
-            window.electronAPI.openExternal(e.url);
-        });
-    }
 
     // ============================================
     // INCOGNITO MODE LOGIC
@@ -990,20 +957,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // [REMOVED] Duplicate Update Logic (See Global Handler at bottom of file)
 
-    // OAuth Login Modal Handlers
+    // Login Failed Modal Handlers
     addListener(closeLoginFailedModal, 'click', () => loginFailedModal.classList.add('hidden'));
     addListener(cancelLoginFailedBtn, 'click', () => loginFailedModal.classList.add('hidden'));
     
-    // OAuth flow - open backend URL in system browser
-    const OAUTH_BACKEND_URL = 'https://ai-floating-assistant-ffyp.vercel.app';
-    addListener(oauthLoginBtn, 'click', () => {
+    // Clear cache and retry login
+    addListener(oauthLoginBtn, 'click', async () => {
         loginFailedModal.classList.add('hidden');
-        if (window.electronAPI && window.electronAPI.openExternal) {
-            // Open OAuth backend in system browser
-            window.electronAPI.openExternal(`${OAUTH_BACKEND_URL}/auth/google/start`);
-            showToast('Opening login in system browser...');
-        } else {
-            showToast('Failed to open system browser');
+        
+        const activeWv = getActiveWebview();
+        if (!activeWv) {
+            showToast('No active page');
+            return;
+        }
+        
+        const currentUrl = activeWv.getURL();
+        showToast('Clearing cache...');
+        
+        try {
+            if (window.electronAPI && window.electronAPI.clearSessionData) {
+                await window.electronAPI.clearSessionData();
+            }
+            
+            setTimeout(() => {
+                // If on rejected page, go to identifier (login) page instead of reloading
+                if (currentUrl.includes('/rejected')) {
+                    // Extract continue parameter to maintain redirect URL
+                    const continueParam = new URL(currentUrl).searchParams.get('continue') || 'https://gemini.google.com';
+                    activeWv.loadURL(`https://accounts.google.com/v3/signin/identifier?continue=${encodeURIComponent(continueParam)}&flowName=GlifWebSignIn&flowEntry=ServiceLogin`);
+                    showToast('Cache cleared - redirecting to login page');
+                } else {
+                    activeWv.reload();
+                    showToast('Cache cleared - page refreshed');
+                }
+            }, 500);
+        } catch (err) {
+            console.error('Failed to clear cache:', err);
+            // Fallback: try to navigate to login page
+            if (currentUrl.includes('/rejected')) {
+                activeWv.loadURL('https://accounts.google.com/v3/signin/identifier?continue=https://gemini.google.com&flowName=GlifWebSignIn');
+            } else {
+                activeWv.reload();
+            }
+            showToast('Page refreshed');
         }
     });
 
@@ -1030,13 +1026,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Centralized Webview Listener Setup
     function setupWebviewListeners(wv) {
-        if (!wv) return;
+        console.log('[setupWebviewListeners] Called for webview:', wv);
+        if (!wv) {
+            console.warn('[setupWebviewListeners] Webview is null/undefined!');
+            return;
+        }
+        console.log('[setupWebviewListeners] Attaching event listeners...');
 
         // 1. Navigation State Updates
         wv.addEventListener('did-navigate', (e) => {
              if (wv === getActiveWebview()) {
                  if (addressBar) addressBar.value = e.url;
                  updateNavButtons(wv);
+             }
+             
+             // Check for Google rejection URL on navigation
+             const url = e.url.toLowerCase();
+             if (url.includes('google.com') && url.includes('/rejected')) {
+                 console.log('[did-navigate] Google rejection URL detected:', e.url);
+                 showLoginFailedModal();
              }
         });
 
@@ -1045,18 +1053,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                  if (addressBar) addressBar.value = e.url;
                  updateNavButtons(wv);
              }
+             
+             // Check for Google rejection URL on in-page navigation
+             const url = e.url.toLowerCase();
+             if (url.includes('google.com') && url.includes('/rejected')) {
+                 console.log('[did-navigate-in-page] Google rejection URL detected:', e.url);
+                 showLoginFailedModal();
+             }
         });
         
         // 2. Loading State
         wv.addEventListener('did-start-loading', () => {
-             // Optional: Show spinner
+             loadingWebviews.add(wv);
+             updateFooterProgress();
         });
         
-        wv.addEventListener('did-stop-loading', () => {
+        const stopLoading = () => {
+             loadingWebviews.delete(wv);
+             updateFooterProgress();
              if (wv === getActiveWebview()) {
                  updateNavButtons(wv);
              }
-        });
+        };
+        
+        wv.addEventListener('did-stop-loading', stopLoading);
 
         // 3. New Window Handling (External Browser)
         wv.addEventListener('new-window', (e) => {
@@ -1064,56 +1084,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.electronAPI.openExternal(e.url);
         });
 
-        // 4. Security & Error Handling (from attachWebviewListeners)
+        // 4. Security & Error Handling
         wv.addEventListener('did-start-navigation', (e) => {
-            const url = e.url.toLowerCase();
-            const tracker = getLoginTracker(wv);
-            
-            // Immediate rejection detection
-            const isRejectionUrl = url.includes('rejected') || 
-                                   url.includes('denied') || 
-                                   url.includes('errors/') ||
-                                   url.includes('error-page');
-            
-            if (isRejectionUrl && (url.includes('google') || url.includes('openai') || url.includes('anthropic'))) {
-                console.log('Immediate login rejection detected via URL:', url);
-                showLoginFailedModal();
-                return;
-            }
-
-            // Login page detection
-            const isLoginUrl = url.includes('accounts.google.com') || 
-                               url.includes('signin') || 
-                               url.includes('login') || 
-                               url.includes('auth');
-            
-            if (isLoginUrl) {
-                if (tracker.lastUrl === url) {
-                    tracker.retryCount++;
-                    if (tracker.retryCount >= 5) {
-                        showLoginFailedModal();
-                        tracker.retryCount = 0;
-                    }
-                } else {
-                    tracker.retryCount = 1;
-                }
-                tracker.lastUrl = url;
-
-                if (tracker.timer) clearTimeout(tracker.timer);
-                tracker.timer = setTimeout(() => {
-                    const currentUrl = wv.getURL().toLowerCase();
-                    if (currentUrl.includes('accounts.google.com') || currentUrl.includes('signin')) {
-                        showLoginFailedModal();
-                    }
-                }, 30000);
-            } else {
-                if (tracker.timer) {
-                    clearTimeout(tracker.timer);
-                    tracker.timer = null;
-                }
-                tracker.retryCount = 0;
-                tracker.lastUrl = '';
-            }
+            // Let navigation proceed - we'll check for errors after page loads
         });
 
         wv.addEventListener('will-navigate', (e) => {
@@ -1121,28 +1094,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Domain allowlist logic can go here if needed
         });
 
+
         wv.addEventListener('did-finish-load', () => {
             const url = wv.getURL().toLowerCase();
+            console.log('[Webview] Page loaded:', url);
+            
             if (url.includes('google.com')) {
+                // Only check for explicit rejection URLs
+                if (url.includes('/rejected')) {
+                    console.log('[Google] Rejection URL detected');
+                    showLoginFailedModal();
+                    return;
+                }
+                
+                // For signin pages, check the actual page content for errors
+                console.log('[Google] Checking for error page...');
                 wv.executeJavaScript(`
                     (function() {
-                        const content = document.body.innerText.toLowerCase();
+                        const content = document.body.innerText;
                         const patterns = [
-                            'this browser or app may not be secure',
-                            'couldn\\'t sign you in',
+                            'may not be secure',
+                            'Couldn',
+                            'couldn',
+                            'sign you in',
                             'something went wrong',
-                            'try using a different browser',
-                            'your browser is not supported'
+                            'different browser',
+                            'not supported',
+                            'Try again'
                         ];
-                        return patterns.some(p => content.includes(p.toLowerCase()));
+                        const found = patterns.find(p => content.includes(p));
+                        return { hasError: !!found, pattern: found || null, content: content.substring(0, 500) };
                     })()
-                `).then(isErrorPage => {
-                    if (isErrorPage) showLoginFailedModal();
-                }).catch(err => console.error('Error checking error page:', err));
+                `).then(result => {
+                    console.log('[Google] Error check result:', result);
+                    if (result && result.hasError) {
+                        console.log('[Google] Error detected, showing modal');
+                        showLoginFailedModal();
+                    }
+                }).catch(err => console.error('[Google] Error checking page:', err));
             }
         });
+        console.log('[setupWebviewListeners] did-finish-load listener attached to webview');
 
         wv.addEventListener('did-fail-load', (e) => {
+            stopLoading(); // Clean up loading state
             if (e.isMainFrame && e.errorCode < 0 && e.errorCode !== -3) { 
                 const url = wv.getURL().toLowerCase();
                 if (url.includes('google') || url.includes('openai') || url.includes('anthropic')) {
@@ -1150,6 +1145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         });
+        
+        wv.addEventListener('destroyed', stopLoading);
     }
 
     function showLoginFailedModal() {
@@ -1649,6 +1646,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(initTour, 1000);
 
     // ============================================
+    // AUTH STATE MANAGEMENT (SINGLE SOURCE OF TRUTH)
+    // ============================================
+    
+    // Global auth state - THIS is the only thing we check
+    window.appAuth = {
+        loggedIn: false,
+        token: null
+    };
+    
+    // Load auth state on startup
+    function loadAuthState() {
+        const token = localStorage.getItem('app_token');
+        if (token) {
+            window.appAuth.loggedIn = true;
+            window.appAuth.token = token;
+            console.log('[Auth] App authenticated - token found');
+        } else {
+            window.appAuth.loggedIn = false;
+            window.appAuth.token = null;
+            console.log('[Auth] App not authenticated - no token');
+        }
+    }
+    
+    // Load auth state immediately
+    loadAuthState();
+    
+    // ============================================
     // OAUTH CALLBACK HANDLERS
     // ============================================
     
@@ -1659,6 +1683,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Store token securely
             localStorage.setItem('app_token', token);
+            
+            // Update global auth state
+            window.appAuth.loggedIn = true;
+            window.appAuth.token = token;
             
             // Show success message
             showToast('✅ Successfully logged in!');
