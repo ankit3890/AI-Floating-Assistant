@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     addListener(cancelLoginFailedBtn, 'click', () => loginFailedModal.classList.add('hidden'));
     
     // OAuth flow - open backend URL in system browser
-    const OAUTH_BACKEND_URL = 'YOUR_VERCEL_URL_HERE'; // User will replace this
+    const OAUTH_BACKEND_URL = 'https://ai-floating-assistant-ffyp.vercel.app';
     addListener(oauthLoginBtn, 'click', () => {
         loginFailedModal.classList.add('hidden');
         if (window.electronAPI && window.electronAPI.openExternal) {
