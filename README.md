@@ -2,7 +2,8 @@
 
 **Current Version:** 1.0.4
 
-[![Download Now](https://img.shields.io/badge/Download-v1.0.4-blue?style=for-the-badge&logo=windows)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-Setup-1.0.4.exe)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows_v1.0.4-blue?style=for-the-badge&logo=windows)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-Setup-1.0.4.exe)
+[![Download for Linux](https://img.shields.io/badge/Download-Linux_v1.0.4-orange?style=for-the-badge&logo=linux)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-1.0.4.AppImage)
 
 **AI Floating Assistant** is a powerful, glassmorphic desktop workspace that stays pinned above all your applications. It brings multiple AI models and productivity tools directly to your fingertips, eliminating tab-switching and fragmented workflows.
 

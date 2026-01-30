@@ -8,7 +8,7 @@
   },
   "main": "app/main/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --no-sandbox --disable-gpu --disable-gpu-compositing --disable-features=VaapiVideoDecoder --use-gl=swiftshader",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,15 +19,16 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icons/logo.ico",
-      "artifactName": "AI-Floating-Assistant-Setup-${version}.${ext}",
-      "publish": [
-        {
-          "provider": "github",
-          "owner": "ankit3890",
-          "repo": "AI-Floating-Assistant"
-        }
-      ]
+      "artifactName": "AI-Floating-Assistant-Setup-${version}.${ext}"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ankit3890",
+        "repo": "AI-Floating-Assistant",
+        "releaseType": "release"
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -40,6 +41,14 @@
       ],
       "icon": "assets/icons/logo.icns",
       "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Utility"
     },
     "dmg": {
       "title": "AI Floating Assistant Installer",
@@ -55,16 +64,16 @@
     ]
   },
   "keywords": [],
-  "author": "Ankit",
+  "author": "Ankit <ankit3890@users.noreply.github.com>",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^39.2.7",
+    "@electron/rebuild": "^3.7.2",
+    "electron": "^27.3.11",
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "electron-log": "^5.4.3",
-    "electron-store": "^11.0.2",
     "electron-updater": "^6.6.2",
     "ws": "^8.18.3"
   }
