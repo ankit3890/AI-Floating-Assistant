@@ -3,7 +3,7 @@
 **Current Version:** 1.0.4
 
 [![Download for Windows](https://img.shields.io/badge/Download-Windows_v1.0.4-blue?style=for-the-badge&logo=windows)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-Setup-1.0.4.exe)
-[![Download for Linux](https://img.shields.io/badge/Download-Linux_v1.0.4-orange?style=for-the-badge&logo=linux)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI-Floating-Assistant-1.0.4.AppImage)
+[![Download for Linux](https://img.shields.io/badge/Download-Linux_v1.0.4-orange?style=for-the-badge&logo=linux)](https://github.com/ankit3890/AI-Floating-Assistant/releases/download/v1.0.4/AI.Floating.Assistant-1.0.4.AppImage)
 
 **AI Floating Assistant** is a powerful, glassmorphic desktop workspace that stays pinned above all your applications. It brings multiple AI models and productivity tools directly to your fingertips, eliminating tab-switching and fragmented workflows.
 
@@ -24,8 +24,8 @@
 2. Right-click -> Properties -> Permissions -> Check **Allow executing file as program**.
 3. Or using terminal:
    ```bash
-   chmod +x "AI Floating Assistant-1.0.4.AppImage"
-   ./"AI Floating Assistant-1.0.4.AppImage"
+   chmod +x "AI.Floating.Assistant-1.0.4.AppImage"
+   ./"AI.Floating.Assistant-1.0.4.AppImage"
    ```
 
 ### Option 2: Debian / Ubuntu (.deb)
