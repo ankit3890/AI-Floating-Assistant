@@ -19,6 +19,12 @@
 
 ## 🐧 Linux Installation
 
+### Prerequisites (Ubuntu 22.04+)
+AppImages require FUSE to run. If you see a `libfuse` error, run:
+```bash
+sudo apt install libfuse2
+```
+
 ### Option 1: AppImage (Recommended)
 1. Download the `.AppImage` file.
 2. Right-click -> Properties -> Permissions -> Check **Allow executing file as program**.
