@@ -17,6 +17,23 @@
 
 > [!TIP] > **Windows Users**: Since the app is in early development and not yet digitally signed, you may see a "Windows protected your PC" alert. Click **More info** -> **Run anyway** to install.
 
+## 🐧 Linux Installation
+
+### Option 1: AppImage (Recommended)
+1. Download the `.AppImage` file.
+2. Right-click -> Properties -> Permissions -> Check **Allow executing file as program**.
+3. Or using terminal:
+   ```bash
+   chmod +x "AI Floating Assistant-1.0.4.AppImage"
+   ./"AI Floating Assistant-1.0.4.AppImage"
+   ```
+
+### Option 2: Debian / Ubuntu (.deb)
+```bash
+sudo dpkg -i ai_pin_1.0.4_amd64.deb
+sudo apt-get install -f # Fix missing dependencies if any
+```
+
 ---
 
 - ## Key Features
