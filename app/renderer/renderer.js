@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // --- Configuration & Constants ---
+    const OAUTH_BACKEND_URL = 'http://localhost:3000'; // TODO: Update to production URL
+
     
     // Default AIs (SVG paths stored as strings for simplicity)
     const DEFAULT_AIS = [
@@ -962,46 +964,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     addListener(cancelLoginFailedBtn, 'click', () => loginFailedModal.classList.add('hidden'));
     
     // Clear cache and retry login
-    addListener(oauthLoginBtn, 'click', async () => {
+    addListener(oauthLoginBtn, 'click', () => {
         loginFailedModal.classList.add('hidden');
-        
-        const activeWv = getActiveWebview();
-        if (!activeWv) {
-            showToast('No active page');
-            return;
-        }
-        
-        const currentUrl = activeWv.getURL();
-        showToast('Clearing cache...');
-        
-        try {
-            if (window.electronAPI && window.electronAPI.clearSessionData) {
-                await window.electronAPI.clearSessionData();
-            }
+        showToast('Opening system browser for login...');
+        const authUrl = `${OAUTH_BACKEND_URL}/auth/google/start`;
+        console.log('[OAuth] Opening external login:', authUrl);
+        window.electronAPI.openExternal(authUrl);
+    });
+
+    // Handle Auth Success
+    if (window.electronAPI && window.electronAPI.onAuthSuccess) {
+        window.electronAPI.onAuthSuccess((token) => {
+            console.log('[Auth] Received token from backend');
+            if (!token) return;
             
-            setTimeout(() => {
-                // If on rejected page, go to identifier (login) page instead of reloading
-                if (currentUrl.includes('/rejected')) {
-                    // Extract continue parameter to maintain redirect URL
-                    const continueParam = new URL(currentUrl).searchParams.get('continue') || 'https://gemini.google.com';
-                    activeWv.loadURL(`https://accounts.google.com/v3/signin/identifier?continue=${encodeURIComponent(continueParam)}&flowName=GlifWebSignIn&flowEntry=ServiceLogin`);
-                    showToast('Cache cleared - redirecting to login page');
-                } else {
-                    activeWv.reload();
-                    showToast('Cache cleared - page refreshed');
-                }
-            }, 500);
-        } catch (err) {
-            console.error('Failed to clear cache:', err);
-            // Fallback: try to navigate to login page
-            if (currentUrl.includes('/rejected')) {
-                activeWv.loadURL('https://accounts.google.com/v3/signin/identifier?continue=https://gemini.google.com&flowName=GlifWebSignIn');
-            } else {
+            // Store token
+            localStorage.setItem('app_token', token);
+            showToast('✅ Logged in successfully!');
+            
+            // Reload active webview to apply any session changes (if applicable)
+            const activeWv = getActiveWebview();
+            if (activeWv) {
+                console.log('[Auth] Reloading webview...');
                 activeWv.reload();
             }
-            showToast('Page refreshed');
-        }
-    });
+        });
+    }
+
 
     // [REMOVED] Duplicate Toast (See Global Handler)
 
