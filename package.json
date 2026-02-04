@@ -1,6 +1,6 @@
 {
   "name": "ai_pin",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Floating AI Assistant",
   "repository": {
     "type": "git",
@@ -11,6 +11,7 @@
     "start": "electron . --no-sandbox --disable-gpu --disable-gpu-compositing --disable-features=VaapiVideoDecoder --use-gl=swiftshader",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
+    "validate-release": "node scripts/validate-release.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "build": {

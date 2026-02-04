@@ -1,4 +1,5 @@
 // main.js
+
 const { app, session, ipcMain, clipboard, BrowserWindow, shell } = require('electron');
 const path = require('path');
 
@@ -16,6 +17,27 @@ let mainWindowRef = null;
 // ---------------------------------------------
 // App Flags
 // ---------------------------------------------
+// Fix for Linux Wayland/X11 compatibility
+if (process.platform === 'linux') {
+  // Check if critical flags are missing
+  const requiredFlags = ['--no-sandbox', '--disable-gpu'];
+  const missingFlags = requiredFlags.filter(flag => !process.argv.includes(flag));
+
+  if (missingFlags.length > 0) {
+    console.log('Relaunching with flags:', missingFlags);
+    app.relaunch({ args: process.argv.slice(1).concat(missingFlags) });
+    app.exit(0);
+  }
+
+  // Also disable programmatically as backup
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('disable-features', 'VaapiVideoDecoder');
+  app.commandLine.appendSwitch('use-gl', 'swiftshader');
+}
+
 const isStartupLaunch = process.argv.includes('--startup');
 
 console.log('--------------------------------------------------');
@@ -42,20 +64,20 @@ if (process.defaultApp) {
 // Handle deep links (OAuth callback)
 const handleDeepLink = (url) => {
   console.log('[Deep Link] Received:', url);
-  
+
   if (!url.startsWith(`${PROTOCOL_NAME}://`)) return;
-  
+
   try {
     const parsedUrl = new URL(url);
     const token = parsedUrl.searchParams.get('token');
     const error = parsedUrl.searchParams.get('error');
-    
+
     if (mainWindowRef && !mainWindowRef.isDestroyed()) {
       // Show and focus window
       if (mainWindowRef.isMinimized()) mainWindowRef.restore();
       mainWindowRef.show();
       mainWindowRef.focus();
-      
+
       // Send auth result to renderer
       if (token) {
         console.log('[OAuth] Success - sending token to renderer');
@@ -88,7 +110,7 @@ if (!gotTheLock) {
     if (url) {
       handleDeepLink(url);
     }
-    
+
     // Focus existing window
     if (mainWindowRef) {
       if (mainWindowRef.isMinimized()) mainWindowRef.restore();
@@ -155,19 +177,19 @@ ipcMain.handle('settings-set', (_, key, val) => storeInstance ? storeInstance.se
 
 app.whenReady().then(() => {
   console.log('App Ready: Initializing services...');
-  
+
   // Init Store safely after App Ready
   try {
-      storeInstance = new Store({
-        configName: 'user-settings',
-        defaults: {
-          userAIs: [],
-          featureFlags: {}
-        }
-      });
-      console.log('Store initialized at:', storeInstance.path);
+    storeInstance = new Store({
+      configName: 'user-settings',
+      defaults: {
+        userAIs: [],
+        featureFlags: {}
+      }
+    });
+    console.log('Store initialized at:', storeInstance.path);
   } catch (err) {
-      console.error('Store init failed:', err);
+    console.error('Store init failed:', err);
   }
 
   startupManager.initialize();
